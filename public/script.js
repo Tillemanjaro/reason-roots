@@ -8,8 +8,10 @@ function rotateQuestion() {
   activeQuestion = (activeQuestion + 1) % questions.length;
 }
 
-rotateQuestion();
-setInterval(rotateQuestion, 2400);
+if (questions.length) {
+  rotateQuestion();
+  setInterval(rotateQuestion, 2400);
+}
 
 const episodeCards = document.querySelectorAll(".episode-card");
 const episodes = document.querySelectorAll(".chapter-panel");
@@ -205,3 +207,227 @@ if ("IntersectionObserver" in window) {
   );
   lessonSections.forEach((section) => lessonObserver.observe(section));
 }
+
+const gospelTarget = document.querySelector("#daily-gospel");
+const usccbCalendarUrl = "https://bible.usccb.org/readings/calendar";
+const usccbRssUrl = "https://bible.usccb.org/readings/rss";
+
+function getUsccbReadingUrl(date = new Date()) {
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  const year = String(date.getFullYear()).slice(-2);
+  return `https://bible.usccb.org/bible/readings/${month}${day}${year}.cfm`;
+}
+
+const usccbReadingUrl = getUsccbReadingUrl();
+
+function decodeHtml(value) {
+  const textarea = document.createElement("textarea");
+  textarea.innerHTML = value;
+  return textarea.value;
+}
+
+function htmlToReadableText(html) {
+  return decodeHtml(
+    html
+      .replace(/<br\s*\/?>/gi, "\n")
+      .replace(/<\/p>/gi, "\n\n")
+      .replace(/<\/h[1-6]>/gi, "\n")
+      .replace(/<[^>]*>/g, "")
+  )
+    .replace(/\u00a0/g, " ")
+    .replace(/[ \t]+\n/g, "\n")
+    .replace(/\n{3,}/g, "\n\n")
+    .trim();
+}
+
+function extractGospel(text) {
+  const allLines = text.split("\n").map((line) => line.trim()).filter(Boolean);
+  const headingIndex = allLines.findIndex((line) => line.toLowerCase() === "gospel");
+  if (headingIndex < 0) return null;
+
+  const lines = [];
+  for (const line of allLines.slice(headingIndex + 1)) {
+    if (/^(Readings for|Lectionary for Mass|Copyright|Daily Reading|LISTEN PODCAST|VIEW REFLECTION VIDEO|En Español|View Calendar|Get Daily Readings)/i.test(line)) {
+      break;
+    }
+    lines.push(line);
+  }
+
+  const reference = lines.shift() || "Gospel";
+  const body = lines.join("\n").trim();
+
+  if (!body) return null;
+  return { reference, body };
+}
+
+function renderGospel({ title, date, reference, body, link }) {
+  if (!gospelTarget) return;
+  const paragraphs = body.split(/\n{2,}/).filter(Boolean);
+  gospelTarget.innerHTML = `
+    <p class="reading-date">${date || "Today's reading"}</p>
+    <h4>${reference}</h4>
+    <div class="gospel-text"></div>
+    <a class="reader-source" href="${link || usccbReadingUrl}" target="_blank" rel="noreferrer">Read the full daily readings</a>
+  `;
+
+  const textWrap = gospelTarget.querySelector(".gospel-text");
+  paragraphs.forEach((paragraph) => {
+    const p = document.createElement("p");
+    p.textContent = paragraph;
+    textWrap.appendChild(p);
+  });
+
+  if (title) {
+    const dateLine = gospelTarget.querySelector(".reading-date");
+    dateLine.textContent = title;
+  }
+}
+
+function renderGospelFallback() {
+  if (!gospelTarget) return;
+  gospelTarget.innerHTML = `
+    <p class="reading-date">${new Intl.DateTimeFormat("en-US", { dateStyle: "full" }).format(new Date())}</p>
+    <h4>Today's USCCB Gospel</h4>
+    <p class="reading-status">Your browser blocked the text import, so the official USCCB reading page is shown here directly.</p>
+    <iframe class="gospel-frame" title="USCCB daily readings" src="${usccbReadingUrl}"></iframe>
+    <a class="reader-source" href="${usccbReadingUrl}" target="_blank" rel="noreferrer">Open today's USCCB readings</a>
+  `;
+}
+
+async function fetchText(url) {
+  const response = await fetch(url);
+  if (!response.ok) throw new Error(`Reading request failed: ${response.status}`);
+  const contentType = response.headers.get("content-type") || "";
+  if (contentType.includes("application/json")) {
+    const data = await response.json();
+    return data.contents || data.content || "";
+  }
+  return response.text();
+}
+
+async function loadDailyGospel() {
+  if (!gospelTarget) return;
+  const proxiedReadingJson = `https://api.allorigins.win/get?url=${encodeURIComponent(usccbReadingUrl)}`;
+  const proxiedReading = `https://api.allorigins.win/raw?url=${encodeURIComponent(usccbReadingUrl)}`;
+  const proxiedRssJson = `https://api.allorigins.win/get?url=${encodeURIComponent(usccbRssUrl)}`;
+  const proxiedRss = `https://api.allorigins.win/raw?url=${encodeURIComponent(usccbRssUrl)}`;
+  const sources = [usccbReadingUrl, proxiedReadingJson, proxiedReading, usccbRssUrl, proxiedRssJson, proxiedRss];
+
+  for (const source of sources) {
+    try {
+      const text = await fetchText(source);
+      const xml = new DOMParser().parseFromString(text, "application/xml");
+      const item = xml.querySelector("item");
+
+      if (item) {
+        const title = item.querySelector("title")?.textContent?.trim();
+        const link = item.querySelector("link")?.textContent?.trim();
+        const description = item.querySelector("description")?.textContent || text;
+        const gospel = extractGospel(htmlToReadableText(description));
+        if (gospel) {
+          renderGospel({ title, reference: gospel.reference, body: gospel.body, link });
+          return;
+        }
+      }
+
+      const pageText = htmlToReadableText(text);
+      const gospel = extractGospel(pageText);
+      if (gospel) {
+        renderGospel({
+          title: new Intl.DateTimeFormat("en-US", { dateStyle: "full" }).format(new Date()),
+          reference: gospel.reference,
+          body: gospel.body,
+          link: usccbReadingUrl
+        });
+        return;
+      }
+    } catch (error) {
+      console.warn(error);
+    }
+  }
+
+  renderGospelFallback();
+}
+
+const lectioSteps = [
+  {
+    title: "Lectio: Read",
+    copy: "Read the Gospel slowly. Notice one word, image, command, or question that seems to stay with you.",
+    prompt: "What word or phrase is drawing your attention?"
+  },
+  {
+    title: "Meditatio: Meditate",
+    copy: "Let that word or phrase meet your actual life. Stay with it without forcing a conclusion.",
+    prompt: "Where does this Gospel touch your life today?"
+  },
+  {
+    title: "Oratio: Pray",
+    copy: "Speak honestly to God from what surfaced. Ask, thank, confess, or simply name what is true.",
+    prompt: "What prayer rises from this reading?"
+  },
+  {
+    title: "Contemplatio: Rest",
+    copy: "Let the words fall quiet. Rest in God's presence before trying to do anything with the reading.",
+    prompt: "What is it like to sit with God here?"
+  },
+  {
+    title: "Actio: Live",
+    copy: "Choose one small, concrete response for the next few hours. Let the Gospel become practice.",
+    prompt: "What one action will you carry into today?"
+  }
+];
+
+let activeLectioStep = 0;
+
+function lectioKey(step = activeLectioStep) {
+  const today = new Date().toISOString().slice(0, 10);
+  return `reason-roots-lectio-${today}-${step}`;
+}
+
+function saveLectioNote() {
+  const note = document.querySelector("#lectio-note");
+  const state = document.querySelector("#lectio-save-state");
+  if (!note) return;
+  localStorage.setItem(lectioKey(), note.value);
+  if (state) state.textContent = "Saved";
+}
+
+function showLectioStep(step, shouldSave = true) {
+  if (shouldSave) saveLectioNote();
+  activeLectioStep = Math.max(0, Math.min(step, lectioSteps.length - 1));
+  const data = lectioSteps[activeLectioStep];
+  document.querySelectorAll("[data-lectio-step]").forEach((button) => {
+    button.classList.toggle("active", Number(button.dataset.lectioStep) === activeLectioStep);
+  });
+  const kicker = document.querySelector("#lectio-kicker");
+  const title = document.querySelector("#lectio-step-title");
+  const copy = document.querySelector("#lectio-step-copy");
+  const label = document.querySelector("#lectio-note-label");
+  const note = document.querySelector("#lectio-note");
+  const state = document.querySelector("#lectio-save-state");
+  if (kicker) kicker.textContent = `Step ${activeLectioStep + 1} of ${lectioSteps.length}`;
+  if (title) title.textContent = data.title;
+  if (copy) copy.textContent = data.copy;
+  if (label) label.textContent = data.prompt;
+  if (note) note.value = localStorage.getItem(lectioKey()) || "";
+  if (state) state.textContent = "";
+}
+
+document.querySelectorAll("[data-lectio-step]").forEach((button) => {
+  button.addEventListener("click", () => showLectioStep(Number(button.dataset.lectioStep)));
+});
+
+document.querySelector("[data-next-lectio]")?.addEventListener("click", () => {
+  showLectioStep(activeLectioStep + 1 >= lectioSteps.length ? 0 : activeLectioStep + 1);
+});
+
+document.querySelector("[data-save-lectio]")?.addEventListener("click", saveLectioNote);
+
+document.querySelector("[data-reset-lectio]")?.addEventListener("click", () => {
+  lectioSteps.forEach((_, index) => localStorage.removeItem(lectioKey(index)));
+  showLectioStep(0);
+});
+
+showLectioStep(0, false);
+loadDailyGospel();

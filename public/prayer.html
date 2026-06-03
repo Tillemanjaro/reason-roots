@@ -1,0 +1,92 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Prayer | Reason & Roots</title>
+    <meta
+      name="description"
+      content="A daily Gospel and guided Lectio Divina prayer space from Reason & Roots."
+    />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700&family=Cormorant+Garamond:wght@500;700&family=Inter:wght@400;500;600;700&family=Playfair+Display:ital,wght@0,600;1,600&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body class="home prayer-page">
+    <a class="skip-link" href="#prayer">Skip to prayer</a>
+
+    <header class="site-header" aria-label="Primary">
+      <a class="brand" href="index.html" aria-label="Reason and Roots home">
+        <span>Reason</span>
+        <i>&</i>
+        <span>Roots</span>
+      </a>
+      <nav>
+        <a href="index.html#chapters">Chapters</a>
+        <a href="index.html#resources">Resources</a>
+      </nav>
+    </header>
+
+    <main>
+      <section id="prayer" class="prayer standalone-prayer" aria-labelledby="prayer-title">
+        <div class="section-heading">
+          <p class="kicker">Daily Prayer</p>
+          <h1 id="prayer-title">Pray with the daily Gospel.</h1>
+          <p>
+            A quiet space for the Gospel of the day and a guided Lectio Divina rhythm.
+          </p>
+        </div>
+        <div class="prayer-layout">
+          <article class="gospel-reader" aria-labelledby="gospel-title">
+            <div class="reader-heading">
+              <div>
+                <p class="eyebrow">USCCB Daily Readings</p>
+                <h3 id="gospel-title">Today's Gospel</h3>
+              </div>
+              <a class="reader-source" href="https://bible.usccb.org/readings/calendar" target="_blank" rel="noreferrer">Open USCCB</a>
+            </div>
+            <div id="daily-gospel" class="daily-gospel" aria-live="polite">
+              <p class="reading-status">Loading today's Gospel from the USCCB daily readings feed...</p>
+            </div>
+          </article>
+
+          <article class="lectio-guide" aria-labelledby="lectio-title">
+            <div class="reader-heading">
+              <div>
+                <p class="eyebrow">Guided Prayer</p>
+                <h3 id="lectio-title">Lectio Divina</h3>
+              </div>
+              <button class="quiet-action" type="button" data-reset-lectio>Reset</button>
+            </div>
+            <div class="lectio-steps" role="tablist" aria-label="Lectio Divina steps">
+              <button class="active" type="button" data-lectio-step="0">Read</button>
+              <button type="button" data-lectio-step="1">Meditate</button>
+              <button type="button" data-lectio-step="2">Pray</button>
+              <button type="button" data-lectio-step="3">Rest</button>
+              <button type="button" data-lectio-step="4">Live</button>
+            </div>
+            <div class="lectio-panel">
+              <p class="eyebrow" id="lectio-kicker">Step 1 of 5</p>
+              <h4 id="lectio-step-title">Lectio: Read</h4>
+              <p id="lectio-step-copy">Read the Gospel slowly. Notice one word, image, command, or question that seems to stay with you.</p>
+              <label for="lectio-note" id="lectio-note-label">What word or phrase is drawing your attention?</label>
+              <textarea id="lectio-note" rows="6"></textarea>
+              <div class="lectio-actions">
+                <button class="quiet-action" type="button" data-save-lectio>Save Reflection</button>
+                <button class="primary-action small-action" type="button" data-next-lectio>Next Step</button>
+              </div>
+              <p class="save-state" id="lectio-save-state" aria-live="polite"></p>
+            </div>
+          </article>
+        </div>
+      </section>
+    </main>
+
+    <div class="toast" role="status" aria-live="polite"></div>
+    <script src="script.js"></script>
+  </body>
+</html>
