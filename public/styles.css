@@ -65,6 +65,11 @@ a {
   gap: 1rem;
   padding: 1rem clamp(1rem, 4vw, 3rem);
   background: linear-gradient(180deg, rgba(11, 11, 13, 0.82), rgba(11, 11, 13, 0));
+  transition: transform 0.3s ease;
+}
+
+.site-header.header-hidden {
+  transform: translateY(-100%);
 }
 
 .brand {
@@ -433,6 +438,38 @@ body.chapter-page .chapter-shell {
   background-position: center;
 }
 
+.beliefs-hero .lesson-hero-bg {
+  background-image:
+    linear-gradient(90deg, rgba(11, 11, 13, 0.92), rgba(11, 11, 13, 0.45)),
+    linear-gradient(0deg, var(--black), transparent 35%),
+    url("assets/beliefs-priest.jpg");
+  background-position: center;
+}
+
+.questions-hero .lesson-hero-bg {
+  background-image:
+    linear-gradient(90deg, rgba(11, 11, 13, 0.82), rgba(11, 11, 13, 0.3)),
+    linear-gradient(0deg, var(--black), transparent 35%),
+    url("assets/difficult-questions.jpg");
+  background-position: center top;
+}
+
+.daily-hero .lesson-hero-bg {
+  background-image:
+    linear-gradient(90deg, rgba(11, 11, 13, 0.75), rgba(11, 11, 13, 0.2)),
+    linear-gradient(0deg, var(--black), transparent 35%),
+    url("assets/daily-bench.jpg");
+  background-position: center;
+}
+
+.conversion-hero .lesson-hero-bg {
+  background-image:
+    linear-gradient(90deg, rgba(11, 11, 13, 0.88), rgba(11, 11, 13, 0.35)),
+    linear-gradient(0deg, var(--black), transparent 35%),
+    url("assets/conversion-sunset.jpg");
+  background-position: center;
+}
+
 .misconception-hero .lesson-hero-bg {
   background-image:
     linear-gradient(90deg, rgba(11, 11, 13, 0.92), rgba(11, 11, 13, 0.45)),
@@ -452,6 +489,22 @@ body.chapter-page .chapter-shell {
     linear-gradient(90deg, rgba(11, 11, 13, 0.94), rgba(11, 11, 13, 0.5)),
     linear-gradient(0deg, var(--black), transparent 35%),
     url("assets/mass-chalice.jpg");
+  background-position: center;
+}
+
+.science-hero .lesson-hero-bg {
+  background-image:
+    linear-gradient(90deg, rgba(11, 11, 13, 0.92), rgba(11, 11, 13, 0.45)),
+    linear-gradient(0deg, var(--black), transparent 35%),
+    url("assets/science-microscope.jpg");
+  background-position: center;
+}
+
+.global-hero .lesson-hero-bg {
+  background-image:
+    linear-gradient(90deg, rgba(11, 11, 13, 0.88), rgba(11, 11, 13, 0.45)),
+    linear-gradient(0deg, var(--black), transparent 35%),
+    url("assets/global-charity.jpg");
   background-position: center;
 }
 
@@ -520,7 +573,8 @@ body.chapter-page .chapter-shell {
   max-width: 48rem;
 }
 
-.lesson-layout {
+.lesson-layout,
+.lesson-shell {
   width: min(1180px, calc(100% - 2.5rem));
   margin: 0 auto;
   display: grid;
@@ -553,7 +607,8 @@ body.chapter-page .chapter-shell {
   background: rgba(200, 169, 107, 0.08);
 }
 
-.lesson-body {
+.lesson-body,
+.lesson-content {
   display: grid;
   gap: 3rem;
 }
@@ -1298,7 +1353,8 @@ figcaption {
     font-size: 3.25rem;
   }
 
-  .lesson-layout {
+  .lesson-layout,
+  .lesson-shell {
     grid-template-columns: 1fr;
   }
 

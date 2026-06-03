@@ -175,6 +175,20 @@ document.querySelectorAll(".deep-toggle").forEach((button) => {
   });
 });
 
+const siteHeader = document.querySelector(".site-header");
+if (siteHeader) {
+  let lastScrollY = window.scrollY;
+  window.addEventListener("scroll", () => {
+    const currentScrollY = window.scrollY;
+    if (currentScrollY > lastScrollY && currentScrollY > 80) {
+      siteHeader.classList.add("header-hidden");
+    } else {
+      siteHeader.classList.remove("header-hidden");
+    }
+    lastScrollY = currentScrollY;
+  }, { passive: true });
+}
+
 if ("IntersectionObserver" in window) {
   const lessonLinks = document.querySelectorAll(".lesson-rail a");
   const lessonSections = document.querySelectorAll(".lesson-section[id]");
