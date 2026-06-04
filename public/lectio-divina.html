@@ -373,8 +373,46 @@
             transform: translateY(8px);
             transition: opacity .9s ease, transform .9s ease;
             margin-top: 40px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 18px;
         }
 
+        /* ── Listen button ─────────────────────────────────────── */
+        .listen-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-family: 'Cinzel', serif;
+            font-size: .58rem;
+            letter-spacing: .28em;
+            text-transform: uppercase;
+            color: var(--gold-dim);
+            transition: color .3s ease;
+            padding: 4px 0;
+        }
+        .listen-btn:hover { color: var(--gold); }
+        .listen-btn.playing { color: var(--gold); }
+
+        .listen-icon {
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            border: 1px solid currentColor;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            transition: border-color .3s ease, box-shadow .3s ease;
+        }
+        .listen-btn.playing .listen-icon {
+            box-shadow: 0 0 16px rgba(200,160,80,.3);
+        }
+        .listen-btn svg { display: block; }
 
         /* revealed state */
         .reading-wrap.reveal .reading-stage-label { opacity: 1; transform: translateY(0); }
@@ -654,6 +692,12 @@
             </div>
             <div class="reading-btn">
                 <button class="btn-primary" onclick="goToReading2()">Continue</button>
+                <button class="listen-btn" id="listen1" onclick="toggleListen(1)">
+                    <span class="listen-icon">
+                        <svg width="10" height="12" viewBox="0 0 10 12" fill="currentColor"><polygon points="0,0 10,6 0,12"/></svg>
+                    </span>
+                    Listen aloud
+                </button>
             </div>
         </div>
     </section>
@@ -674,6 +718,12 @@
             </div>
             <div class="reading-btn">
                 <button class="btn-primary" onclick="goToReading3()">I'm Ready</button>
+                <button class="listen-btn" id="listen2" onclick="toggleListen(2)">
+                    <span class="listen-icon">
+                        <svg width="10" height="12" viewBox="0 0 10 12" fill="currentColor"><polygon points="0,0 10,6 0,12"/></svg>
+                    </span>
+                    Listen aloud
+                </button>
             </div>
         </div>
     </section>
@@ -694,6 +744,12 @@
             </div>
             <div class="reading-btn">
                 <button class="btn-primary" onclick="goToMeditatio()">I heard it</button>
+                <button class="listen-btn" id="listen3" onclick="toggleListen(3)">
+                    <span class="listen-icon">
+                        <svg width="10" height="12" viewBox="0 0 10 12" fill="currentColor"><polygon points="0,0 10,6 0,12"/></svg>
+                    </span>
+                    Listen aloud
+                </button>
             </div>
         </div>
     </section>
@@ -1158,6 +1214,60 @@ function useManualEntry() {
 // ── Init date ─────────────────────────────────────────────────────────
 document.getElementById('intro-date').textContent =
     new Date().toLocaleDateString('en-US', { weekday:'long', year:'numeric', month:'long', day:'numeric' });
+
+// ── Web Speech API ────────────────────────────────────────────────────
+const PREFERRED_VOICES = ['Samantha','Karen','Daniel','Google UK English Female','Google UK English Male','Microsoft Zira','Moira'];
+let speechVoice = null;
+
+function loadVoice() {
+    const voices = window.speechSynthesis.getVoices();
+    if (!voices.length) return;
+    for (const name of PREFERRED_VOICES) {
+        const v = voices.find(v => v.name.includes(name));
+        if (v) { speechVoice = v; return; }
+    }
+    speechVoice = voices.find(v => v.lang.startsWith('en')) || voices[0];
+}
+window.speechSynthesis.onvoiceschanged = loadVoice;
+loadVoice();
+
+function stopSpeech() {
+    window.speechSynthesis.cancel();
+    [1,2,3].forEach(n => {
+        const btn = document.getElementById(`listen${n}`);
+        if (!btn) return;
+        btn.classList.remove('playing');
+        btn.querySelector('svg').innerHTML = '<polygon points="0,0 10,6 0,12"/>';
+        btn.querySelector('.listen-label') && (btn.querySelector('.listen-label').textContent = 'Listen aloud');
+    });
+}
+
+function toggleListen(n) {
+    if (window.speechSynthesis.speaking) { stopSpeech(); return; }
+    const text = document.getElementById(`text${n}`)?.textContent;
+    if (!text) return;
+    if (!speechVoice) loadVoice();
+
+    const utt = new SpeechSynthesisUtterance(text);
+    if (speechVoice) utt.voice = speechVoice;
+    utt.rate = 0.88;
+    utt.pitch = 1;
+    utt.lang = 'en-US';
+
+    const btn = document.getElementById(`listen${n}`);
+    btn.classList.add('playing');
+    btn.querySelector('svg').innerHTML = '<rect x="1" y="0" width="3" height="12"/><rect x="6" y="0" width="3" height="12"/>';
+
+    utt.onend = () => stopSpeech();
+    utt.onerror = () => stopSpeech();
+    window.speechSynthesis.speak(utt);
+}
+
+// Stop speech on any navigation
+['goToReading2','goToReading3','goToMeditatio','goToOratio','goToContemplatio','goToClosing','beginAgain'].forEach(fn => {
+    const orig = window[fn];
+    if (orig) window[fn] = function(...a) { stopSpeech(); return orig.apply(this, a); };
+});
 
 // ── Keyboard support ──────────────────────────────────────────────────
 document.addEventListener('keydown', e => {
