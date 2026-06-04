@@ -484,8 +484,7 @@
             border-color: var(--gold);
             box-shadow: 0 0 24px rgba(200,160,80,.22);
         }
-        .prayer-icon { font-size: 1.6rem; display: block; margin-bottom: 8px; }
-        .prayer-name {
+.prayer-name {
             font-family: 'Cinzel', serif;
             font-size: .6rem;
             letter-spacing: .12em;
@@ -734,32 +733,26 @@
 
         <div class="prayer-grid">
             <div class="prayer-card" onclick="selectPrayer('gratitude', this)">
-                <span class="prayer-icon">🙏</span>
                 <div class="prayer-name">Gratitude</div>
                 <div class="prayer-desc">"Thank you, Lord…"</div>
             </div>
             <div class="prayer-card" onclick="selectPrayer('petition', this)">
-                <span class="prayer-icon">🤲</span>
                 <div class="prayer-name">Petition</div>
                 <div class="prayer-desc">"Lord, I need you…"</div>
             </div>
             <div class="prayer-card" onclick="selectPrayer('praise', this)">
-                <span class="prayer-icon">✨</span>
                 <div class="prayer-name">Praise</div>
                 <div class="prayer-desc">"Glory to you…"</div>
             </div>
             <div class="prayer-card" onclick="selectPrayer('repentance', this)">
-                <span class="prayer-icon">💔</span>
                 <div class="prayer-name">Repentance</div>
                 <div class="prayer-desc">"Forgive me, Lord…"</div>
             </div>
             <div class="prayer-card" onclick="selectPrayer('surrender', this)">
-                <span class="prayer-icon">🕊️</span>
                 <div class="prayer-name">Surrender</div>
                 <div class="prayer-desc">"I trust in you…"</div>
             </div>
             <div class="prayer-card" onclick="selectPrayer('intercession', this)">
-                <span class="prayer-icon">💛</span>
                 <div class="prayer-name">Intercession</div>
                 <div class="prayer-desc">"For those I love…"</div>
             </div>
@@ -1068,12 +1061,12 @@ function goToContemplatio() {
 
 function goToClosing() {
     const LABELS = {
-        gratitude:    'Gratitude 🙏',
-        petition:     'Petition 🤲',
-        praise:       'Praise ✨',
-        repentance:   'Repentance 💔',
-        surrender:    'Surrender 🕊️',
-        intercession: 'Intercession 💛'
+        gratitude:    'Gratitude',
+        petition:     'Petition',
+        praise:       'Praise',
+        repentance:   'Repentance',
+        surrender:    'Surrender',
+        intercession: 'Intercession'
     };
     const now = new Date();
     document.getElementById('closing-date').textContent =
