@@ -44,6 +44,169 @@ if ("IntersectionObserver" in window) {
   episodes.forEach((episode) => episodeObserver.observe(episode));
 }
 
+function dateOnly(date) {
+  return new Date(date.getFullYear(), date.getMonth(), date.getDate());
+}
+
+function addDays(date, days) {
+  const next = new Date(date);
+  next.setDate(next.getDate() + days);
+  return next;
+}
+
+function getEasterDate(year) {
+  const a = year % 19;
+  const b = Math.floor(year / 100);
+  const c = year % 100;
+  const d = Math.floor(b / 4);
+  const e = b % 4;
+  const f = Math.floor((b + 8) / 25);
+  const g = Math.floor((b - f + 1) / 3);
+  const h = (19 * a + b - d - g + 15) % 30;
+  const i = Math.floor(c / 4);
+  const k = c % 4;
+  const l = (32 + 2 * e + 2 * i - h - k) % 7;
+  const m = Math.floor((a + 11 * h + 22 * l) / 451);
+  const month = Math.floor((h + l - 7 * m + 114) / 31) - 1;
+  const day = ((h + l - 7 * m + 114) % 31) + 1;
+  return new Date(year, month, day);
+}
+
+function getAdventStart(year) {
+  const decemberThird = new Date(year, 11, 3);
+  return addDays(decemberThird, -decemberThird.getDay());
+}
+
+function getLiturgicalSeason(today = new Date()) {
+  const current = dateOnly(today);
+  const year = current.getFullYear();
+  const easter = getEasterDate(year);
+  const ashWednesday = addDays(easter, -46);
+  const easterSeasonEnd = addDays(easter, 49);
+  const adventStart = getAdventStart(year);
+  const christmasStart = new Date(year, 11, 25);
+  const christmasEnd = new Date(year + 1, 0, 6);
+  const earlyChristmasEnd = new Date(year, 0, 6);
+
+  if (current >= adventStart && current < christmasStart) {
+    return {
+      season: "Advent",
+      description: "Advent trains expectation. The Church waits for Christ's coming in history, in glory, and into the ordinary places where people still need hope."
+    };
+  }
+  if ((current >= christmasStart && current <= christmasEnd) || current <= earlyChristmasEnd) {
+    return {
+      season: "Christmas",
+      description: "Christmas is not only a day. It is the Church lingering over the claim that God entered the world in flesh, poverty, family, and vulnerability."
+    };
+  }
+  if (current >= ashWednesday && current < easter) {
+    return {
+      season: "Lent",
+      description: "Lent strips faith back to essentials: repentance, fasting, prayer, mercy, and the long walk with Christ toward the Cross."
+    };
+  }
+  if (current >= easter && current <= easterSeasonEnd) {
+    return {
+      season: "Easter",
+      description: "Easter is the Church's great season of resurrection. The point is not optimism, but Christ risen after real death."
+    };
+  }
+  return {
+    season: "Ordinary Time",
+    description: "Ordinary Time is not filler. It is the long school of discipleship, where the life of Christ is learned in ordinary weeks."
+  };
+}
+
+const liturgicalDay = document.querySelector("#liturgical-day");
+const liturgicalSeason = document.querySelector("#liturgical-season");
+const liturgicalDescription = document.querySelector("#liturgical-description");
+if (liturgicalSeason && liturgicalDescription) {
+  const today = new Date();
+  const currentSeason = getLiturgicalSeason(today);
+  if (liturgicalDay) {
+    liturgicalDay.textContent = new Intl.DateTimeFormat("en-US", {
+      weekday: "long",
+      month: "long",
+      day: "numeric"
+    }).format(today);
+  }
+  liturgicalSeason.textContent = currentSeason.season;
+  liturgicalDescription.textContent = currentSeason.description;
+}
+
+const churchSpaceText = {
+  altar: {
+    label: "Altar",
+    title: "The table of sacrifice and communion",
+    copy: "The altar is where the Eucharistic sacrifice is offered and the faithful are fed. Its central placement tells the eye that Catholic worship turns around Christ's self-gift."
+  },
+  ambo: {
+    label: "Ambo",
+    title: "The place where Scripture is proclaimed",
+    copy: "The ambo gives the Word a visible home. Catholic worship does not treat Scripture as background; it is proclaimed as living address to the gathered Church."
+  },
+  tabernacle: {
+    label: "Tabernacle",
+    title: "The reserved Eucharistic presence",
+    copy: "The tabernacle holds the consecrated Eucharist outside Mass, especially for the sick and for prayer. Its lamp quietly signals Christ's sacramental presence."
+  },
+  font: {
+    label: "Baptismal Font",
+    title: "The doorway into Christian life",
+    copy: "The font points to baptism: cleansing, rebirth, and entry into the Church. Many churches place it near the entrance because baptism is the beginning."
+  },
+  crucifix: {
+    label: "Crucifix",
+    title: "Love shown through the Cross",
+    copy: "The crucifix keeps Christian faith from becoming vague uplift. Catholic worship looks at Christ's wounded love and reads every hope through it."
+  },
+  candles: {
+    label: "Candles",
+    title: "Prayer, vigil, and living light",
+    copy: "Candles make prayer visible. Their flame suggests watchfulness, offering, memory, and the light of Christ held in a dark world."
+  }
+};
+
+const churchDetail = document.querySelector("#church-detail");
+document.querySelectorAll("[data-church-space]").forEach((button) => {
+  const updateChurchSpace = () => {
+    const detail = churchSpaceText[button.dataset.churchSpace];
+    if (!detail || !churchDetail) return;
+    document.querySelectorAll("[data-church-space]").forEach((item) => {
+      item.classList.toggle("active", item === button);
+    });
+    churchDetail.innerHTML = `<p class="eyebrow">${detail.label}</p><h3>${detail.title}</h3><p>${detail.copy}</p>`;
+  };
+  button.addEventListener("click", updateChurchSpace);
+  button.addEventListener("mouseenter", updateChurchSpace);
+});
+
+const massStageKicker = document.querySelector("#mass-stage-kicker");
+const massStageTitle = document.querySelector("#mass-stage-title");
+const massStageCopy = document.querySelector("#mass-stage-copy");
+const massFlowSteps = document.querySelectorAll("[data-mass-phase]");
+
+function setMassStage(step) {
+  if (!step || !massStageTitle || !massStageCopy) return;
+  massFlowSteps.forEach((item) => item.classList.toggle("active", item === step));
+  if (massStageKicker) massStageKicker.textContent = step.dataset.massPhase;
+  massStageTitle.textContent = step.dataset.massTitle;
+  massStageCopy.textContent = step.dataset.massCopy;
+}
+
+if ("IntersectionObserver" in window && massFlowSteps.length) {
+  const massObserver = new IntersectionObserver(
+    (entries) => {
+      entries.forEach((entry) => {
+        if (entry.isIntersecting) setMassStage(entry.target);
+      });
+    },
+    { rootMargin: "-35% 0px -45% 0px", threshold: 0.2 }
+  );
+  massFlowSteps.forEach((step) => massObserver.observe(step));
+}
+
 const toast = document.querySelector(".toast");
 let toastTimer;
 
@@ -209,7 +372,6 @@ if ("IntersectionObserver" in window) {
 }
 
 const gospelTarget = document.querySelector("#daily-gospel");
-const usccbCalendarUrl = "https://bible.usccb.org/readings/calendar";
 const usccbRssUrl = "https://bible.usccb.org/readings/rss";
 
 function getUsccbReadingUrl(date = new Date()) {
