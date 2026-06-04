@@ -116,6 +116,7 @@
             overflow-y: auto;
             overflow-x: hidden;
             -webkit-overflow-scrolling: touch;
+            background: var(--bg);
         }
         .screen.active {
             opacity: 1;
@@ -374,34 +375,6 @@
             margin-top: 40px;
         }
 
-        /* ── Sacred audio player ───────────────────────────────── */
-        .gospel-audio-wrap {
-            width: 100%;
-            max-width: 480px;
-            margin: 20px auto 0;
-            opacity: 0;
-            transition: opacity .9s ease;
-        }
-        .reading-wrap.reveal .gospel-audio-wrap { opacity: 1; transition-delay: 2.1s; }
-
-        .gospel-audio-label {
-            font-family: 'Cinzel', serif;
-            font-size: .52rem;
-            letter-spacing: .3em;
-            color: var(--gold-dim);
-            text-align: center;
-            text-transform: uppercase;
-            margin-bottom: 10px;
-        }
-
-        audio.sacred-player {
-            width: 100%;
-            height: 36px;
-            filter: invert(1) sepia(1) saturate(1.5) hue-rotate(5deg) brightness(.75);
-            opacity: .7;
-            border-radius: 2px;
-        }
-        audio.sacred-player::-webkit-media-controls-panel { background: transparent; }
 
         /* revealed state */
         .reading-wrap.reveal .reading-stage-label { opacity: 1; transform: translateY(0); }
@@ -679,10 +652,6 @@
                     <p class="reading-body" id="text1"></p>
                 </div>
             </div>
-            <div class="gospel-audio-wrap">
-                <div class="gospel-audio-label">Listen · Human Lector</div>
-                <audio class="sacred-player" id="audio1" controls preload="none"></audio>
-            </div>
             <div class="reading-btn">
                 <button class="btn-primary" onclick="goToReading2()">Continue</button>
             </div>
@@ -703,10 +672,6 @@
                     <p class="reading-body" id="text2"></p>
                 </div>
             </div>
-            <div class="gospel-audio-wrap">
-                <div class="gospel-audio-label">Listen · Human Lector</div>
-                <audio class="sacred-player" id="audio2" controls preload="none"></audio>
-            </div>
             <div class="reading-btn">
                 <button class="btn-primary" onclick="goToReading3()">I'm Ready</button>
             </div>
@@ -726,10 +691,6 @@
                 <div class="reading-scroll">
                     <p class="reading-body" id="text3"></p>
                 </div>
-            </div>
-            <div class="gospel-audio-wrap">
-                <div class="gospel-audio-label">Listen · Human Lector</div>
-                <audio class="sacred-player" id="audio3" controls preload="none"></audio>
             </div>
             <div class="reading-btn">
                 <button class="btn-primary" onclick="goToMeditatio()">I heard it</button>
@@ -1040,25 +1001,26 @@ function beginJourney() {
 }
 
 function cleanText(raw) {
-    // Add spaces after punctuation that's missing them (USCCB parsing artifact)
     return raw
+        .replace(/&nbsp;/g, ' ')
+        .replace(/&amp;/g, '&')
+        .replace(/&lt;/g, '<')
+        .replace(/&gt;/g, '>')
+        .replace(/&quot;/g, '"')
+        .replace(/&#39;/g, "'")
         .replace(/([a-z])([A-Z])/g, '$1 $2')
-        .replace(/([.:;,!?])([A-Za-z])/g, '$1 $2');
+        .replace(/([.:;,!?])([A-Za-z])/g, '$1 $2')
+        .replace(/\s{2,}/g, ' ')
+        .trim();
 }
 
-function getUSCCBAudioUrl() {
-    return '/api/gospel-audio';
-}
 
 function populateReadings() {
     const { reference, text } = state.gospel;
     const clean = cleanText(text);
-    const audioSrc = getUSCCBAudioUrl();
     [1,2,3].forEach(n => {
         document.getElementById(`ref${n}`).textContent = reference;
         document.getElementById(`text${n}`).textContent = clean;
-        const audio = document.getElementById(`audio${n}`);
-        if (audio) audio.src = audioSrc;
     });
 }
 
