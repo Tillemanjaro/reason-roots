@@ -98,6 +98,24 @@ nav a {
   text-decoration: none;
 }
 
+.pray-link {
+  font-family: Cinzel, serif;
+  font-size: 0.72rem;
+  letter-spacing: 0.18em;
+  text-decoration: none;
+  color: var(--gold);
+  white-space: nowrap;
+  flex-shrink: 0;
+  margin-left: auto;
+  padding: 6px 14px;
+  border: 1px solid rgba(201, 169, 110, 0.35);
+  border-radius: 2px;
+  transition: border-color 0.3s ease, color 0.3s ease;
+}
+.pray-link:hover {
+  border-color: var(--gold);
+}
+
 .hero {
   position: relative;
   min-height: 100svh;
