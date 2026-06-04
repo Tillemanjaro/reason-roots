@@ -1047,11 +1047,7 @@ function cleanText(raw) {
 }
 
 function getUSCCBAudioUrl() {
-    const now = new Date();
-    const mm = String(now.getMonth() + 1).padStart(2, '0');
-    const dd = String(now.getDate()).padStart(2, '0');
-    const yyyy = now.getFullYear();
-    return `https://bible.usccb.org/sites/default/files/flipbooks/readings/${yyyy}/${mm}-${dd}-${yyyy}.mp3`;
+    return '/api/gospel-audio';
 }
 
 function populateReadings() {
