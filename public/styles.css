@@ -364,6 +364,39 @@ h3 {
   color: rgba(245, 241, 232, 0.84);
 }
 
+.gospel-thread {
+  width: min(1180px, 100%);
+  margin: 0 auto 1.5rem;
+  display: grid;
+  grid-template-columns: minmax(8rem, 0.34fr) minmax(14rem, 0.72fr) minmax(0, 1fr);
+  gap: 1rem;
+  align-items: center;
+  border-top: 1px solid rgba(200, 169, 107, 0.36);
+  border-bottom: 1px solid rgba(245, 241, 232, 0.12);
+  padding: 1rem 0;
+}
+
+.gospel-thread span {
+  color: var(--gold);
+  font-family: Cinzel, serif;
+  font-size: 0.78rem;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.gospel-thread strong {
+  color: var(--ivory);
+  font-family: "Cormorant Garamond", Georgia, serif;
+  font-size: clamp(1.5rem, 3vw, 2.3rem);
+  line-height: 1;
+}
+
+.gospel-thread p {
+  margin: 0;
+  color: rgba(245, 241, 232, 0.72);
+  font-size: 0.95rem;
+}
+
 .chapter-layout {
   width: min(1180px, 100%);
   margin: 0 auto;
@@ -1667,6 +1700,7 @@ figcaption {
 
   .section-inner,
   .liturgical-panel,
+  .gospel-thread,
   .church-explorer,
   .mass-walkthrough,
   .chapter-panel,

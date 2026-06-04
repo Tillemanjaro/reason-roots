@@ -15,6 +15,16 @@ if (questions.length) {
 
 const episodeCards = document.querySelectorAll(".episode-card");
 const episodes = document.querySelectorAll(".chapter-panel");
+const storyPhase = document.querySelector("#story-phase");
+const storyTitle = document.querySelector("#story-title");
+const storyCopy = document.querySelector("#story-copy");
+
+function updateStoryThread(panel) {
+  if (!panel || !storyPhase || !storyTitle || !storyCopy) return;
+  storyPhase.textContent = panel.dataset.storyPhase || "";
+  storyTitle.textContent = panel.dataset.storyTitle || "";
+  storyCopy.textContent = panel.dataset.storyCopy || "";
+}
 
 episodeCards.forEach((card) => {
   card.addEventListener("click", (event) => {
@@ -23,6 +33,7 @@ episodeCards.forEach((card) => {
       event.preventDefault();
       target.scrollIntoView({ behavior: "smooth", block: "start" });
       history.replaceState(null, "", card.getAttribute("href"));
+      updateStoryThread(target);
     }
     episodeCards.forEach((item) => item.classList.toggle("active", item === card));
   });
@@ -36,6 +47,7 @@ if ("IntersectionObserver" in window) {
         episodeCards.forEach((card) => {
           card.classList.toggle("active", card.getAttribute("href") === `#${entry.target.id}`);
         });
+        updateStoryThread(entry.target);
       });
     },
     { rootMargin: "-35% 0px -55% 0px", threshold: 0.01 }
