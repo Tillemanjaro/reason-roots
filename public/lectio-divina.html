@@ -806,23 +806,29 @@ function showScreen(name) {
 
 // ── USCCB gospel fetch ────────────────────────────────────────────────
 async function fetchGospel() {
+    // Try server-side API route first (no CORS issues)
+    try {
+        const res = await fetch('/api/gospel', { signal: AbortSignal.timeout(10000) });
+        if (res.ok) {
+            const data = await res.json();
+            if (data.text && data.text.length > 80) return data;
+        }
+    } catch (e) { /* fall through */ }
+
+    // Client-side proxy fallback
     const USCCB = 'https://bible.usccb.org/daily-bible-reading';
     const proxies = [
         `https://api.allorigins.win/raw?url=${encodeURIComponent(USCCB)}`,
         `https://corsproxy.io/?${encodeURIComponent(USCCB)}`,
-        `https://thingproxy.freeboard.io/fetch/${USCCB}`
     ];
-
     for (const url of proxies) {
         try {
-            const res = await fetch(url, { signal: AbortSignal.timeout(12000) });
+            const res = await fetch(url, { signal: AbortSignal.timeout(10000) });
             if (!res.ok) continue;
             const html = await res.text();
             const gospel = parseGospel(html);
             if (gospel && gospel.text.length > 80) return gospel;
-        } catch (e) {
-            /* try next proxy */
-        }
+        } catch (e) { /* try next */ }
     }
     return null;
 }
@@ -879,9 +885,9 @@ function beginJourney() {
             populateReadings();
             setTimeout(() => showScreen('reading1'), 500);
         } else {
-            setTimeout(() => showScreen('manual'), 500);
+            setTimeout(() => showScreen('manual'), 1100);
         }
-    }).catch(() => setTimeout(() => showScreen('manual'), 500));
+    }).catch(() => setTimeout(() => showScreen('manual'), 1100));
 }
 
 function populateReadings() {
