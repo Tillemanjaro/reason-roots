@@ -278,14 +278,112 @@
             white-space: pre-wrap;
         }
 
-        /* Reading number badge */
-        .reading-num {
+        /* ── Reading screens ───────────────────────────────────── */
+        .reading-wrap {
+            width: 100%;
+            max-width: 760px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0;
+        }
+
+        .reading-stage-label {
             font-family: 'Cinzel', serif;
-            font-size: .55rem;
-            letter-spacing: .32em;
+            font-size: .58rem;
+            letter-spacing: .38em;
             color: var(--gold-dim);
+            text-transform: uppercase;
             text-align: center;
-            margin-bottom: 22px;
+            opacity: 0;
+            transform: translateY(10px);
+            transition: opacity .9s ease, transform .9s ease;
+            margin-bottom: 28px;
+        }
+
+        .reading-instruction {
+            font-family: 'Cormorant Garamond', serif;
+            font-size: clamp(1.55rem, 3.5vw, 2.4rem);
+            font-style: italic;
+            font-weight: 300;
+            color: var(--white);
+            text-align: center;
+            line-height: 1.5;
+            max-width: 620px;
+            opacity: 0;
+            transform: translateY(14px);
+            transition: opacity 1.1s ease, transform 1.1s ease;
+            margin-bottom: 36px;
+        }
+
+        .reading-divider {
+            width: 48px;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, var(--gold-dim), transparent);
+            margin: 0 auto 32px;
+            opacity: 0;
+            transition: opacity 1s ease;
+        }
+
+        .reading-ref {
+            font-family: 'Cinzel', serif;
+            font-size: .78rem;
+            letter-spacing: .14em;
+            color: var(--gold);
+            text-align: center;
+            margin-bottom: 24px;
+            opacity: 0;
+            transition: opacity 1s ease;
+        }
+
+        .reading-text-wrap {
+            width: 100%;
+            max-width: 700px;
+            opacity: 0;
+            transform: translateY(10px);
+            transition: opacity 1.3s ease, transform 1.3s ease;
+        }
+
+        .reading-scroll {
+            max-height: 46vh;
+            overflow-y: auto;
+            padding: 0 6px 4px;
+            scrollbar-width: thin;
+            scrollbar-color: var(--gold-dim) transparent;
+        }
+        .reading-scroll::-webkit-scrollbar { width: 3px; }
+        .reading-scroll::-webkit-scrollbar-thumb { background: var(--gold-dim); border-radius: 2px; }
+
+        .reading-body {
+            font-family: 'Cormorant Garamond', serif;
+            font-size: clamp(1.2rem, 2.4vw, 1.55rem);
+            font-style: italic;
+            font-weight: 300;
+            line-height: 2.2;
+            color: var(--white);
+            text-align: center;
+            white-space: pre-wrap;
+        }
+
+        .reading-btn {
+            opacity: 0;
+            transform: translateY(8px);
+            transition: opacity .9s ease, transform .9s ease;
+            margin-top: 40px;
+        }
+
+        /* revealed state */
+        .reading-wrap.reveal .reading-stage-label { opacity: 1; transform: translateY(0); }
+        .reading-wrap.reveal .reading-instruction  { opacity: 1; transform: translateY(0); transition-delay: .6s; }
+        .reading-wrap.reveal .reading-divider      { opacity: 1; transition-delay: 1.1s; }
+        .reading-wrap.reveal .reading-ref          { opacity: 1; transition-delay: 1.4s; }
+        .reading-wrap.reveal .reading-text-wrap    { opacity: 1; transform: translateY(0); transition-delay: 1.7s; }
+        .reading-wrap.reveal .reading-btn          { opacity: 1; transform: translateY(0); transition-delay: 2.4s; }
+
+        @media (max-width: 600px) {
+            .reading-instruction { font-size: clamp(1.25rem, 4.5vw, 1.6rem); margin-bottom: 24px; }
+            .reading-scroll { max-height: 40vh; }
+            .reading-body { font-size: clamp(1.05rem, 3.5vw, 1.25rem); line-height: 2; }
         }
 
         /* ── Meditatio ─────────────────────────────────────────── */
@@ -539,46 +637,55 @@
 
     <!-- ═══════════════════════════════════ READING 1 ══════ -->
     <section class="screen" id="screen-reading1">
-        <div style="width:100%; max-width:700px; display:flex; flex-direction:column; align-items:center;">
-            <div class="reading-num">LECTIO · FIRST READING</div>
-            <div class="eyebrow" style="margin-bottom:22px; color:var(--text-muted);">Read slowly. Let the words wash over you.</div>
-            <div class="scripture-block">
-                <div class="scripture-ref" id="ref1"></div>
-                <div class="scripture-scroll">
-                    <p class="scripture-body" id="text1"></p>
+        <div class="reading-wrap" id="rw1">
+            <div class="reading-stage-label">Lectio · First Reading</div>
+            <div class="reading-instruction">
+                Read slowly.<br>Let each word land before moving to the next.
+            </div>
+            <div class="reading-divider"></div>
+            <div class="reading-ref" id="ref1"></div>
+            <div class="reading-text-wrap">
+                <div class="reading-scroll">
+                    <p class="reading-body" id="text1"></p>
                 </div>
             </div>
-            <button class="btn-primary" style="margin-top:32px;" onclick="goToReading2()">Continue</button>
+            <button class="btn-primary reading-btn" onclick="goToReading2()">Continue</button>
         </div>
     </section>
 
     <!-- ═══════════════════════════════════ READING 2 ══════ -->
     <section class="screen" id="screen-reading2">
-        <div style="width:100%; max-width:700px; display:flex; flex-direction:column; align-items:center;">
-            <div class="reading-num">READ AGAIN · SECOND READING</div>
-            <div class="eyebrow" style="margin-bottom:22px; color:var(--text-muted);">See where God is taking you. What stirs within you?</div>
-            <div class="scripture-block">
-                <div class="scripture-ref" id="ref2"></div>
-                <div class="scripture-scroll">
-                    <p class="scripture-body" id="text2"></p>
+        <div class="reading-wrap" id="rw2">
+            <div class="reading-stage-label">Second Reading · Go Deeper</div>
+            <div class="reading-instruction">
+                Read it again — slower.<br>Notice what stirs. What word reaches you?
+            </div>
+            <div class="reading-divider"></div>
+            <div class="reading-ref" id="ref2"></div>
+            <div class="reading-text-wrap">
+                <div class="reading-scroll">
+                    <p class="reading-body" id="text2"></p>
                 </div>
             </div>
-            <button class="btn-primary" style="margin-top:32px;" onclick="goToReading3()">I'm Ready</button>
+            <button class="btn-primary reading-btn" onclick="goToReading3()">I'm Ready</button>
         </div>
     </section>
 
     <!-- ═══════════════════════════════════ READING 3 ══════ -->
     <section class="screen" id="screen-reading3">
-        <div style="width:100%; max-width:700px; display:flex; flex-direction:column; align-items:center;">
-            <div class="reading-num">THIRD READING · LISTEN DEEPLY</div>
-            <div class="eyebrow" style="margin-bottom:22px; color:var(--text-muted);">What word or phrase is speaking to you?</div>
-            <div class="scripture-block">
-                <div class="scripture-ref" id="ref3"></div>
-                <div class="scripture-scroll">
-                    <p class="scripture-body" id="text3"></p>
+        <div class="reading-wrap" id="rw3">
+            <div class="reading-stage-label">Third Reading · Listen</div>
+            <div class="reading-instruction">
+                One last time — as if God<br>is speaking directly to you.
+            </div>
+            <div class="reading-divider"></div>
+            <div class="reading-ref" id="ref3"></div>
+            <div class="reading-text-wrap">
+                <div class="reading-scroll">
+                    <p class="reading-body" id="text3"></p>
                 </div>
             </div>
-            <button class="btn-primary" style="margin-top:32px;" onclick="goToMeditatio()">I heard it</button>
+            <button class="btn-primary reading-btn" onclick="goToMeditatio()">I heard it</button>
         </div>
     </section>
 
@@ -883,23 +990,42 @@ function beginJourney() {
         if (gospel) {
             state.gospel = gospel;
             populateReadings();
-            setTimeout(() => showScreen('reading1'), 500);
+            setTimeout(() => { showScreen('reading1'); triggerReveal('rw1'); }, 500);
         } else {
             setTimeout(() => showScreen('manual'), 1100);
         }
     }).catch(() => setTimeout(() => showScreen('manual'), 1100));
 }
 
+function cleanText(raw) {
+    // Add spaces after punctuation that's missing them (USCCB parsing artifact)
+    return raw
+        .replace(/([a-z])([A-Z])/g, '$1 $2')
+        .replace(/([.:;,!?])([A-Za-z])/g, '$1 $2');
+}
+
 function populateReadings() {
     const { reference, text } = state.gospel;
+    const clean = cleanText(text);
     [1,2,3].forEach(n => {
         document.getElementById(`ref${n}`).textContent = reference;
-        document.getElementById(`text${n}`).textContent = text;
+        document.getElementById(`text${n}`).textContent = clean;
     });
 }
 
-function goToReading2() { showScreen('reading2'); }
-function goToReading3() { showScreen('reading3'); }
+function triggerReveal(id) {
+    const wrap = document.getElementById(id);
+    if (!wrap) return;
+    wrap.classList.remove('reveal');
+    // reset scroll
+    const scroll = wrap.querySelector('.reading-scroll');
+    if (scroll) scroll.scrollTop = 0;
+    // stagger start — wait for screen transition to begin
+    setTimeout(() => wrap.classList.add('reveal'), 200);
+}
+
+function goToReading2() { showScreen('reading2'); triggerReveal('rw2'); }
+function goToReading3() { showScreen('reading3'); triggerReveal('rw3'); }
 
 function goToMeditatio() {
     showScreen('meditatio');
@@ -1015,6 +1141,7 @@ function useManualEntry() {
     state.gospel = { reference: ref, text };
     populateReadings();
     showScreen('reading1');
+    triggerReveal('rw1');
 }
 
 // ── Init date ─────────────────────────────────────────────────────────
