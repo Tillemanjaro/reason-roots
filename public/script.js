@@ -15,15 +15,21 @@ if (questions.length) {
 
 const episodeCards = document.querySelectorAll(".episode-card");
 const episodes = document.querySelectorAll(".chapter-panel");
-const storyPhase = document.querySelector("#story-phase");
-const storyTitle = document.querySelector("#story-title");
-const storyCopy = document.querySelector("#story-copy");
+const journeyStage = document.querySelector("#journey-stage");
+const journeyPhase = document.querySelector("#journey-phase");
+const journeyTitle = document.querySelector("#journey-title");
+const journeyCopy = document.querySelector("#journey-copy");
+const journeyLink = document.querySelector("#journey-link");
+const journeySteps = document.querySelectorAll(".journey-step");
 
-function updateStoryThread(panel) {
-  if (!panel || !storyPhase || !storyTitle || !storyCopy) return;
-  storyPhase.textContent = panel.dataset.storyPhase || "";
-  storyTitle.textContent = panel.dataset.storyTitle || "";
-  storyCopy.textContent = panel.dataset.storyCopy || "";
+function setJourneyStep(step) {
+  if (!step || !journeyStage || !journeyPhase || !journeyTitle || !journeyCopy) return;
+  journeySteps.forEach((item) => item.classList.toggle("active", item === step));
+  journeyStage.className = `journey-stage ${step.dataset.journeyBg || "journey-question"}`;
+  journeyPhase.textContent = step.dataset.journeyPhase || "";
+  journeyTitle.textContent = step.dataset.journeyTitle || "";
+  journeyCopy.textContent = step.dataset.journeyCopy || "";
+  if (journeyLink) journeyLink.href = step.dataset.journeyLink || "chapter-01-beliefs.html";
 }
 
 episodeCards.forEach((card) => {
@@ -33,11 +39,27 @@ episodeCards.forEach((card) => {
       event.preventDefault();
       target.scrollIntoView({ behavior: "smooth", block: "start" });
       history.replaceState(null, "", card.getAttribute("href"));
-      updateStoryThread(target);
     }
     episodeCards.forEach((item) => item.classList.toggle("active", item === card));
   });
 });
+
+journeySteps.forEach((step) => {
+  step.addEventListener("click", () => setJourneyStep(step));
+  step.addEventListener("mouseenter", () => setJourneyStep(step));
+});
+
+if ("IntersectionObserver" in window && journeySteps.length) {
+  const journeyObserver = new IntersectionObserver(
+    (entries) => {
+      entries.forEach((entry) => {
+        if (entry.isIntersecting) setJourneyStep(entry.target);
+      });
+    },
+    { rootMargin: "-28% 0px -42% 0px", threshold: 0.22 }
+  );
+  journeySteps.forEach((step) => journeyObserver.observe(step));
+}
 
 if ("IntersectionObserver" in window) {
   const episodeObserver = new IntersectionObserver(
@@ -47,7 +69,6 @@ if ("IntersectionObserver" in window) {
         episodeCards.forEach((card) => {
           card.classList.toggle("active", card.getAttribute("href") === `#${entry.target.id}`);
         });
-        updateStoryThread(entry.target);
       });
     },
     { rootMargin: "-35% 0px -55% 0px", threshold: 0.01 }

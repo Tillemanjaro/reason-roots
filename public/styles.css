@@ -340,61 +340,115 @@ h3 {
   text-decoration: none;
 }
 
-.season-trailer {
-  position: relative;
+.story-journey {
   width: min(1180px, 100%);
-  min-height: 25rem;
   margin: 0 auto 2rem;
+  display: grid;
+  grid-template-columns: minmax(0, 1.18fr) minmax(17rem, 0.82fr);
+  gap: 1rem;
+  align-items: start;
+}
+
+.journey-stage {
+  position: sticky;
+  top: 5.5rem;
+  min-height: min(72svh, 42rem);
   display: grid;
   align-content: end;
   justify-items: start;
-  gap: 1.2rem;
-  padding: clamp(1.4rem, 5vw, 4rem);
-  overflow: hidden;
-  background:
-    linear-gradient(90deg, rgba(11, 11, 13, 0.92), rgba(11, 11, 13, 0.45)),
-    url("https://commons.wikimedia.org/wiki/Special:Redirect/file/St-Peter%20Basilica%20interior%202010.jpg") center / cover;
-}
-
-.season-trailer > div {
-  width: min(720px, 100%);
-}
-
-.season-trailer p {
-  color: rgba(245, 241, 232, 0.84);
-}
-
-.gospel-thread {
-  width: min(1180px, 100%);
-  margin: 0 auto 1.5rem;
-  display: grid;
-  grid-template-columns: minmax(8rem, 0.34fr) minmax(14rem, 0.72fr) minmax(0, 1fr);
   gap: 1rem;
-  align-items: center;
-  border-top: 1px solid rgba(200, 169, 107, 0.36);
-  border-bottom: 1px solid rgba(245, 241, 232, 0.12);
-  padding: 1rem 0;
+  overflow: hidden;
+  isolation: isolate;
+  padding: clamp(1.3rem, 5vw, 4rem);
+  border: 1px solid rgba(245, 241, 232, 0.13);
 }
 
-.gospel-thread span {
+.journey-stage::before,
+.journey-stage::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -2;
+  transition: opacity 0.3s ease;
+}
+
+.journey-stage::before {
+  background:
+    linear-gradient(90deg, rgba(11, 11, 13, 0.94), rgba(11, 11, 13, 0.46)),
+    var(--journey-image) center / cover;
+  transform: scale(1.02);
+}
+
+.journey-stage::after {
+  z-index: -1;
+  background:
+    linear-gradient(0deg, rgba(11, 11, 13, 0.94), transparent 42%),
+    radial-gradient(circle at 80% 18%, rgba(200, 169, 107, 0.22), transparent 34%);
+}
+
+.journey-question { --journey-image: url("assets/conversion-sunset.jpg"); }
+.journey-christ { --journey-image: url("assets/beliefs-priest.jpg"); }
+.journey-cross { --journey-image: url("assets/difficult-questions.jpg"); }
+.journey-church { --journey-image: url("assets/global-charity.jpg"); }
+.journey-mass { --journey-image: url("assets/mass-chalice.jpg"); }
+.journey-witness { --journey-image: url("https://images.unsplash.com/photo-1569511166187-97eb6e387e19?auto=format&fit=crop&w=1400&q=80"); }
+.journey-life { --journey-image: url("assets/daily-bench.jpg"); }
+
+.journey-stage h3 {
+  max-width: 9ch;
+  font-size: clamp(3.2rem, 7vw, 6rem);
+}
+
+.journey-stage p:not(.eyebrow) {
+  margin: 0;
+  max-width: 42rem;
+  color: rgba(245, 241, 232, 0.86);
+  font-size: 1.04rem;
+}
+
+.journey-steps {
+  display: grid;
+  gap: 0.7rem;
+}
+
+.journey-step {
+  min-height: 9rem;
+  border: 1px solid rgba(245, 241, 232, 0.14);
+  border-left: 3px solid rgba(245, 241, 232, 0.18);
+  background: rgba(245, 241, 232, 0.045);
+  padding: 1rem;
+  cursor: pointer;
+  transition: border-color 0.25s ease, background 0.25s ease, transform 0.25s ease;
+}
+
+.journey-step:hover,
+.journey-step.active {
+  border-left-color: var(--gold);
+  background: rgba(200, 169, 107, 0.12);
+}
+
+.journey-step.active {
+  transform: translateX(-0.35rem);
+}
+
+.journey-step span {
+  display: block;
   color: var(--gold);
   font-family: Cinzel, serif;
-  font-size: 0.78rem;
   font-weight: 800;
-  text-transform: uppercase;
 }
 
-.gospel-thread strong {
+.journey-step strong {
+  display: block;
+  margin-top: 0.15rem;
   color: var(--ivory);
-  font-family: "Cormorant Garamond", Georgia, serif;
-  font-size: clamp(1.5rem, 3vw, 2.3rem);
-  line-height: 1;
+  font-size: 1.05rem;
 }
 
-.gospel-thread p {
-  margin: 0;
-  color: rgba(245, 241, 232, 0.72);
-  font-size: 0.95rem;
+.journey-step p {
+  margin: 0.4rem 0 0;
+  color: rgba(245, 241, 232, 0.68);
+  font-size: 0.9rem;
 }
 
 .chapter-layout {
@@ -1700,7 +1754,7 @@ figcaption {
 
   .section-inner,
   .liturgical-panel,
-  .gospel-thread,
+  .story-journey,
   .church-explorer,
   .mass-walkthrough,
   .chapter-panel,
@@ -1718,6 +1772,30 @@ figcaption {
     top: 0;
     margin-inline: -1.25rem;
     padding-inline: 1.25rem;
+  }
+
+  .journey-stage {
+    position: sticky;
+    top: 0;
+    min-height: 58svh;
+    margin-inline: -1.25rem;
+    border-inline: 0;
+  }
+
+  .journey-stage h3 {
+    font-size: 3.35rem;
+  }
+
+  .journey-steps {
+    margin-top: 0.25rem;
+  }
+
+  .journey-step {
+    min-height: 7.25rem;
+  }
+
+  .journey-step.active {
+    transform: none;
   }
 
   .episode-card {
