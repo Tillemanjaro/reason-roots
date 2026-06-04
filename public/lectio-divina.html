@@ -1,0 +1,1024 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lectio Divina · Sacred Daily Reading</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300;1,400;1,500&family=Inter:wght@200;300;400&display=swap" rel="stylesheet">
+    <style>
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+        :root {
+            --bg:         #05050f;
+            --surface:    #0d0d20;
+            --gold:       #c8a050;
+            --gold-light: #e8c878;
+            --gold-dim:   #7a6030;
+            --text:       #e8e0d0;
+            --text-muted: #7070a0;
+            --white:      #f0ead8;
+            --danger:     rgba(200, 80, 80, 0.8);
+        }
+
+        html, body {
+            height: 100%;
+            overflow: hidden;
+            background: var(--bg);
+            color: var(--text);
+            font-family: 'Inter', sans-serif;
+            font-weight: 300;
+        }
+
+        /* ── Canvas ────────────────────────────────────────────── */
+        #canvas-bg {
+            position: fixed;
+            inset: 0;
+            z-index: 0;
+            pointer-events: none;
+        }
+
+        /* Radial vignette */
+        #vignette {
+            position: fixed;
+            inset: 0;
+            background: radial-gradient(ellipse at 50% 50%, transparent 35%, rgba(5,5,15,.75) 100%);
+            z-index: 1;
+            pointer-events: none;
+        }
+
+        /* ── Progress bar ──────────────────────────────────────── */
+        #progress-bar {
+            position: fixed;
+            top: 0; left: 0; right: 0;
+            height: 2px;
+            background: rgba(200,160,80,.08);
+            z-index: 200;
+        }
+        #progress-fill {
+            height: 100%;
+            width: 0%;
+            background: linear-gradient(90deg, var(--gold-dim), var(--gold), var(--gold-light));
+            transition: width 1s ease;
+        }
+
+        /* ── Stage breadcrumb (top) ────────────────────────────── */
+        #breadcrumb {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 200;
+            display: flex;
+            align-items: center;
+            gap: 18px;
+            opacity: 0;
+            transition: opacity .6s ease;
+        }
+        #breadcrumb.visible { opacity: 1; }
+        .bc-stage {
+            font-family: 'Cinzel', serif;
+            font-size: 0.55rem;
+            letter-spacing: .3em;
+            color: var(--gold-dim);
+            text-transform: uppercase;
+            transition: color .4s ease;
+            cursor: default;
+        }
+        .bc-stage.active { color: var(--gold); }
+        .bc-sep {
+            width: 20px; height: 1px;
+            background: var(--gold-dim);
+        }
+
+        /* ── Screens ───────────────────────────────────────────── */
+        #app {
+            position: relative;
+            z-index: 2;
+            width: 100%;
+            height: 100%;
+        }
+
+        .screen {
+            position: absolute;
+            inset: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 60px 28px 80px;
+            opacity: 0;
+            pointer-events: none;
+            transform: translateY(22px);
+            transition: opacity 1.4s cubic-bezier(.25,.46,.45,.94),
+                        transform 1.4s cubic-bezier(.25,.46,.45,.94);
+            overflow-y: auto;
+            overflow-x: hidden;
+            -webkit-overflow-scrolling: touch;
+        }
+        .screen.active {
+            opacity: 1;
+            pointer-events: all;
+            transform: translateY(0);
+        }
+        .screen.exit {
+            opacity: 0;
+            transform: translateY(-18px);
+            transition: opacity .9s ease, transform .9s ease;
+        }
+
+        /* ── Typography ────────────────────────────────────────── */
+        .eyebrow {
+            font-family: 'Cinzel', serif;
+            font-size: .6rem;
+            letter-spacing: .35em;
+            color: var(--gold-dim);
+            text-transform: uppercase;
+            margin-bottom: 14px;
+        }
+
+        .display-title {
+            font-family: 'Cinzel', serif;
+            font-size: clamp(2.6rem, 7vw, 5rem);
+            color: var(--gold);
+            text-align: center;
+            line-height: 1.1;
+            margin-bottom: 12px;
+            font-weight: 400;
+        }
+
+        .section-heading {
+            font-family: 'Cinzel', serif;
+            font-size: clamp(1.4rem, 3.5vw, 2.4rem);
+            color: var(--gold);
+            text-align: center;
+            line-height: 1.25;
+            font-weight: 400;
+        }
+
+        .lead {
+            font-family: 'Cormorant Garamond', serif;
+            font-size: clamp(1rem, 2.2vw, 1.25rem);
+            font-style: italic;
+            color: var(--text-muted);
+            text-align: center;
+            line-height: 1.8;
+            max-width: 500px;
+            margin: 12px 0 36px;
+        }
+
+        /* ── Divider ───────────────────────────────────────────── */
+        .divider {
+            width: 72px;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, var(--gold-dim), transparent);
+            margin: 20px auto 28px;
+        }
+
+        /* ── Cross mark ────────────────────────────────────────── */
+        .cross-mark {
+            font-size: 1.4rem;
+            color: var(--gold-dim);
+            margin-bottom: 18px;
+            display: block;
+            text-align: center;
+            letter-spacing: .1em;
+        }
+
+        /* ── Buttons ───────────────────────────────────────────── */
+        .btn-primary {
+            font-family: 'Cinzel', serif;
+            font-size: .72rem;
+            letter-spacing: .28em;
+            text-transform: uppercase;
+            color: #0a0810;
+            background: linear-gradient(135deg, var(--gold) 0%, var(--gold-light) 100%);
+            border: none;
+            padding: 16px 52px;
+            cursor: pointer;
+            border-radius: 2px;
+            transition: all .35s ease;
+            display: inline-block;
+            margin-top: 12px;
+        }
+        .btn-primary:hover:not(:disabled) {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 40px rgba(200,160,80,.38);
+        }
+        .btn-primary:disabled {
+            opacity: .3;
+            cursor: not-allowed;
+        }
+        .btn-ghost {
+            font-family: 'Cinzel', serif;
+            font-size: .65rem;
+            letter-spacing: .22em;
+            text-transform: uppercase;
+            color: var(--gold-dim);
+            background: transparent;
+            border: 1px solid var(--gold-dim);
+            padding: 13px 36px;
+            cursor: pointer;
+            border-radius: 2px;
+            transition: all .3s ease;
+            display: inline-block;
+            margin-top: 12px;
+        }
+        .btn-ghost:hover {
+            color: var(--gold);
+            border-color: var(--gold);
+        }
+
+        /* ── Scripture ─────────────────────────────────────────── */
+        .scripture-block {
+            max-width: 680px;
+            width: 100%;
+            margin: 0 auto;
+        }
+
+        .scripture-badge {
+            font-family: 'Cinzel', serif;
+            font-size: .58rem;
+            letter-spacing: .28em;
+            color: var(--gold-dim);
+            border: 1px solid rgba(200,160,80,.18);
+            padding: 5px 18px;
+            display: inline-block;
+            margin-bottom: 20px;
+        }
+
+        .scripture-ref {
+            font-family: 'Cinzel', serif;
+            font-size: .8rem;
+            letter-spacing: .12em;
+            color: var(--gold);
+            text-align: center;
+            margin-bottom: 22px;
+        }
+
+        .scripture-scroll {
+            max-height: 52vh;
+            overflow-y: auto;
+            padding: 0 4px 4px;
+            scrollbar-width: thin;
+            scrollbar-color: var(--gold-dim) transparent;
+        }
+        .scripture-scroll::-webkit-scrollbar { width: 3px; }
+        .scripture-scroll::-webkit-scrollbar-thumb { background: var(--gold-dim); border-radius: 2px; }
+
+        .scripture-body {
+            font-family: 'Cormorant Garamond', serif;
+            font-size: clamp(1.05rem, 1.9vw, 1.2rem);
+            font-style: italic;
+            font-weight: 300;
+            line-height: 2.1;
+            color: var(--white);
+            text-align: center;
+            white-space: pre-wrap;
+        }
+
+        /* Reading number badge */
+        .reading-num {
+            font-family: 'Cinzel', serif;
+            font-size: .55rem;
+            letter-spacing: .32em;
+            color: var(--gold-dim);
+            text-align: center;
+            margin-bottom: 22px;
+        }
+
+        /* ── Meditatio ─────────────────────────────────────────── */
+        .sacred-input {
+            background: transparent;
+            border: none;
+            border-bottom: 1px solid var(--gold-dim);
+            color: var(--white);
+            font-family: 'Cormorant Garamond', serif;
+            font-size: clamp(1.3rem, 3vw, 1.9rem);
+            font-style: italic;
+            text-align: center;
+            padding: 14px 10px;
+            width: 100%;
+            max-width: 520px;
+            outline: none;
+            transition: border-color .4s ease;
+        }
+        .sacred-input:focus { border-bottom-color: var(--gold); }
+        .sacred-input.shake {
+            animation: shake .4s ease;
+            border-bottom-color: var(--danger);
+        }
+
+        @keyframes shake {
+            0%,100% { transform: translateX(0); }
+            20%,60% { transform: translateX(-6px); }
+            40%,80% { transform: translateX(6px); }
+        }
+
+        /* ── Reflection ────────────────────────────────────────── */
+        .chosen-word {
+            font-family: 'Cinzel', serif;
+            font-size: clamp(1.3rem, 3.5vw, 2.2rem);
+            color: var(--gold);
+            text-align: center;
+            padding: 14px 32px;
+            border: 1px solid rgba(200,160,80,.25);
+            background: rgba(200,160,80,.04);
+            display: inline-block;
+            max-width: 90vw;
+            animation: glow-pulse 4s ease-in-out infinite;
+            margin: 18px 0 26px;
+            word-break: break-word;
+        }
+
+        @keyframes glow-pulse {
+            0%,100% { box-shadow: 0 0 18px rgba(200,160,80,.15), inset 0 0 18px rgba(200,160,80,.02); }
+            50%      { box-shadow: 0 0 46px rgba(200,160,80,.38), inset 0 0 46px rgba(200,160,80,.06); }
+        }
+
+        .sacred-textarea {
+            background: rgba(255,255,255,.025);
+            border: 1px solid rgba(200,160,80,.18);
+            color: var(--white);
+            font-family: 'Cormorant Garamond', serif;
+            font-size: clamp(.95rem, 1.8vw, 1.1rem);
+            font-style: italic;
+            padding: 20px 22px;
+            width: 100%;
+            max-width: 560px;
+            min-height: 140px;
+            outline: none;
+            resize: none;
+            line-height: 1.9;
+            border-radius: 3px;
+            transition: border-color .3s ease;
+        }
+        .sacred-textarea:focus { border-color: rgba(200,160,80,.45); }
+
+        /* ── Prayer grid ───────────────────────────────────────── */
+        .prayer-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            max-width: 600px;
+            width: 100%;
+            margin: 20px 0 24px;
+        }
+
+        .prayer-card {
+            background: rgba(200,160,80,.03);
+            border: 1px solid rgba(200,160,80,.12);
+            padding: 22px 12px;
+            text-align: center;
+            cursor: pointer;
+            border-radius: 3px;
+            transition: all .3s ease;
+            user-select: none;
+        }
+        .prayer-card:hover {
+            background: rgba(200,160,80,.09);
+            border-color: rgba(200,160,80,.38);
+            transform: translateY(-3px);
+        }
+        .prayer-card.selected {
+            background: rgba(200,160,80,.13);
+            border-color: var(--gold);
+            box-shadow: 0 0 24px rgba(200,160,80,.22);
+        }
+        .prayer-icon { font-size: 1.6rem; display: block; margin-bottom: 8px; }
+        .prayer-name {
+            font-family: 'Cinzel', serif;
+            font-size: .6rem;
+            letter-spacing: .12em;
+            color: var(--gold);
+            text-transform: uppercase;
+        }
+        .prayer-desc {
+            font-family: 'Cormorant Garamond', serif;
+            font-size: .82rem;
+            font-style: italic;
+            color: var(--text-muted);
+            margin-top: 5px;
+        }
+
+        /* ── Contemplatio breathing circle ─────────────────────── */
+        .breath-ring {
+            width: 130px;
+            height: 130px;
+            border-radius: 50%;
+            border: 1px solid rgba(200,160,80,.25);
+            margin: 20px auto;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            animation: breathe 7s ease-in-out infinite;
+            position: relative;
+        }
+        .breath-ring::before {
+            content: '';
+            position: absolute;
+            inset: 10px;
+            border-radius: 50%;
+            border: 1px solid rgba(200,160,80,.12);
+            animation: breathe 7s ease-in-out infinite;
+            animation-delay: .3s;
+        }
+        .breath-label {
+            font-family: 'Cinzel', serif;
+            font-size: .55rem;
+            letter-spacing: .25em;
+            color: var(--gold-dim);
+            position: relative;
+            z-index: 1;
+        }
+        @keyframes breathe {
+            0%,100% { transform: scale(1);    box-shadow: 0 0 20px rgba(200,160,80,.08); }
+            50%      { transform: scale(1.18); box-shadow: 0 0 60px rgba(200,160,80,.28); }
+        }
+
+        /* ── Loader ────────────────────────────────────────────── */
+        .loader {
+            width: 38px;
+            height: 38px;
+            border: 1px solid rgba(200,160,80,.15);
+            border-top-color: var(--gold);
+            border-radius: 50%;
+            animation: spin 1.6s linear infinite;
+            margin: 36px auto 24px;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        /* ── Closing summary ───────────────────────────────────── */
+        .summary-block {
+            max-width: 520px;
+            width: 100%;
+            text-align: center;
+        }
+        .summary-label {
+            font-family: 'Cinzel', serif;
+            font-size: .55rem;
+            letter-spacing: .3em;
+            color: var(--gold-dim);
+            text-transform: uppercase;
+            margin-top: 22px;
+            margin-bottom: 6px;
+        }
+        .summary-value {
+            font-family: 'Cormorant Garamond', serif;
+            font-size: 1rem;
+            font-style: italic;
+            color: var(--text-muted);
+        }
+
+        /* ── Manual fallback ───────────────────────────────────── */
+        .manual-link {
+            color: var(--gold);
+            text-decoration: none;
+            border-bottom: 1px solid rgba(200,160,80,.3);
+        }
+
+        .input-hint {
+            font-family: 'Inter', sans-serif;
+            font-size: .72rem;
+            color: var(--text-muted);
+            text-align: center;
+            margin-bottom: 14px;
+            opacity: .7;
+        }
+
+        /* ── Responsive ────────────────────────────────────────── */
+        @media (max-width: 600px) {
+            .screen { padding: 48px 18px 70px; }
+            .prayer-grid { grid-template-columns: repeat(2, 1fr); }
+            .scripture-scroll { max-height: 44vh; }
+        }
+
+        @media (max-width: 380px) {
+            .display-title { font-size: 2.2rem; }
+            .prayer-grid { grid-template-columns: repeat(2, 1fr); gap: 8px; }
+        }
+    </style>
+</head>
+<body>
+
+<canvas id="canvas-bg"></canvas>
+<div id="vignette"></div>
+<div id="progress-bar"><div id="progress-fill"></div></div>
+
+<nav id="breadcrumb">
+    <span class="bc-stage" id="bc-lectio">Lectio</span>
+    <div class="bc-sep"></div>
+    <span class="bc-stage" id="bc-meditatio">Meditatio</span>
+    <div class="bc-sep"></div>
+    <span class="bc-stage" id="bc-oratio">Oratio</span>
+    <div class="bc-sep"></div>
+    <span class="bc-stage" id="bc-contemplatio">Contemplatio</span>
+</nav>
+
+<div id="app">
+
+    <!-- ═══════════════════════════════════ INTRO ══════════ -->
+    <section class="screen active" id="screen-intro">
+        <span class="cross-mark">✦</span>
+        <div class="eyebrow">Daily Sacred Reading</div>
+        <h1 class="display-title">Lectio<br>Divina</h1>
+        <div class="divider"></div>
+        <p class="lead">Enter into the ancient practice of sacred reading.<br>Let God's word speak directly to your heart.</p>
+        <div class="eyebrow" id="intro-date" style="color:var(--text-muted); margin-bottom:40px;"></div>
+        <button class="btn-primary" onclick="beginJourney()">Enter into the Reading</button>
+    </section>
+
+    <!-- ═══════════════════════════════════ LOADING ════════ -->
+    <section class="screen" id="screen-loading">
+        <span class="cross-mark">✦</span>
+        <div class="eyebrow">Preparing Today's Gospel</div>
+        <div class="loader"></div>
+        <p class="lead" style="margin-top:0;">Gathering today's gospel<br>from the USCCB…</p>
+    </section>
+
+    <!-- ═══════════════════════════════════ READING 1 ══════ -->
+    <section class="screen" id="screen-reading1">
+        <div style="width:100%; max-width:700px; display:flex; flex-direction:column; align-items:center;">
+            <div class="reading-num">LECTIO · FIRST READING</div>
+            <div class="eyebrow" style="margin-bottom:22px; color:var(--text-muted);">Read slowly. Let the words wash over you.</div>
+            <div class="scripture-block">
+                <div class="scripture-ref" id="ref1"></div>
+                <div class="scripture-scroll">
+                    <p class="scripture-body" id="text1"></p>
+                </div>
+            </div>
+            <button class="btn-primary" style="margin-top:32px;" onclick="goToReading2()">Continue</button>
+        </div>
+    </section>
+
+    <!-- ═══════════════════════════════════ READING 2 ══════ -->
+    <section class="screen" id="screen-reading2">
+        <div style="width:100%; max-width:700px; display:flex; flex-direction:column; align-items:center;">
+            <div class="reading-num">READ AGAIN · SECOND READING</div>
+            <div class="eyebrow" style="margin-bottom:22px; color:var(--text-muted);">See where God is taking you. What stirs within you?</div>
+            <div class="scripture-block">
+                <div class="scripture-ref" id="ref2"></div>
+                <div class="scripture-scroll">
+                    <p class="scripture-body" id="text2"></p>
+                </div>
+            </div>
+            <button class="btn-primary" style="margin-top:32px;" onclick="goToReading3()">I'm Ready</button>
+        </div>
+    </section>
+
+    <!-- ═══════════════════════════════════ READING 3 ══════ -->
+    <section class="screen" id="screen-reading3">
+        <div style="width:100%; max-width:700px; display:flex; flex-direction:column; align-items:center;">
+            <div class="reading-num">THIRD READING · LISTEN DEEPLY</div>
+            <div class="eyebrow" style="margin-bottom:22px; color:var(--text-muted);">What word or phrase is speaking to you?</div>
+            <div class="scripture-block">
+                <div class="scripture-ref" id="ref3"></div>
+                <div class="scripture-scroll">
+                    <p class="scripture-body" id="text3"></p>
+                </div>
+            </div>
+            <button class="btn-primary" style="margin-top:32px;" onclick="goToMeditatio()">I heard it</button>
+        </div>
+    </section>
+
+    <!-- ═══════════════════════════════════ MEDITATIO ══════ -->
+    <section class="screen" id="screen-meditatio">
+        <span class="cross-mark">✦</span>
+        <div class="eyebrow">Meditatio · Stage 2 of 4</div>
+        <h2 class="section-heading">What word or phrase<br>stood out to you?</h2>
+        <div class="divider"></div>
+        <input
+            type="text"
+            class="sacred-input"
+            id="phrase-input"
+            placeholder="type it here…"
+            autocomplete="off"
+            spellcheck="false"
+            onkeydown="if(event.key==='Enter') goToReflection()"
+        >
+        <button class="btn-primary" style="margin-top:36px;" onclick="goToReflection()">Continue</button>
+    </section>
+
+    <!-- ═══════════════════════════════════ REFLECTION ═════ -->
+    <section class="screen" id="screen-reflection">
+        <span class="cross-mark">✦</span>
+        <div class="eyebrow">Meditatio · Reflection</div>
+        <p class="lead" style="margin:0 0 4px; font-size:.82rem; color:var(--text-muted); font-style:normal; font-family:'Cinzel',serif; letter-spacing:.15em;">YOUR PHRASE</p>
+        <div class="chosen-word" id="display-phrase"></div>
+        <p class="lead" style="margin:0 0 20px;">Where is God calling you<br>through this word?</p>
+        <textarea
+            class="sacred-textarea"
+            id="reflection-input"
+            placeholder="Write freely. This is between you and God…"
+        ></textarea>
+        <button class="btn-primary" style="margin-top:28px;" onclick="goToOratio()">Continue</button>
+    </section>
+
+    <!-- ═══════════════════════════════════ ORATIO ═════════ -->
+    <section class="screen" id="screen-oratio">
+        <span class="cross-mark">✦</span>
+        <div class="eyebrow">Oratio · Stage 3 of 4</div>
+        <h2 class="section-heading">Now Pray</h2>
+        <div class="divider"></div>
+        <div class="chosen-word" id="oratio-phrase"></div>
+        <p class="lead" style="margin:0 0 10px; font-size:.95rem;">Hold this word. Speak to God from your heart.</p>
+        <div class="eyebrow" style="color:var(--text-muted); margin-bottom:4px;">As you hold this phrase, what prayer arises?</div>
+
+        <div class="prayer-grid">
+            <div class="prayer-card" onclick="selectPrayer('gratitude', this)">
+                <span class="prayer-icon">🙏</span>
+                <div class="prayer-name">Gratitude</div>
+                <div class="prayer-desc">"Thank you, Lord…"</div>
+            </div>
+            <div class="prayer-card" onclick="selectPrayer('petition', this)">
+                <span class="prayer-icon">🤲</span>
+                <div class="prayer-name">Petition</div>
+                <div class="prayer-desc">"Lord, I need you…"</div>
+            </div>
+            <div class="prayer-card" onclick="selectPrayer('praise', this)">
+                <span class="prayer-icon">✨</span>
+                <div class="prayer-name">Praise</div>
+                <div class="prayer-desc">"Glory to you…"</div>
+            </div>
+            <div class="prayer-card" onclick="selectPrayer('repentance', this)">
+                <span class="prayer-icon">💔</span>
+                <div class="prayer-name">Repentance</div>
+                <div class="prayer-desc">"Forgive me, Lord…"</div>
+            </div>
+            <div class="prayer-card" onclick="selectPrayer('surrender', this)">
+                <span class="prayer-icon">🕊️</span>
+                <div class="prayer-name">Surrender</div>
+                <div class="prayer-desc">"I trust in you…"</div>
+            </div>
+            <div class="prayer-card" onclick="selectPrayer('intercession', this)">
+                <span class="prayer-icon">💛</span>
+                <div class="prayer-name">Intercession</div>
+                <div class="prayer-desc">"For those I love…"</div>
+            </div>
+        </div>
+
+        <button class="btn-primary" id="oratio-continue" disabled onclick="goToContemplatio()">
+            I Have Prayed
+        </button>
+    </section>
+
+    <!-- ═══════════════════════════════════ CONTEMPLATIO ═══ -->
+    <section class="screen" id="screen-contemplatio">
+        <span class="cross-mark">✦</span>
+        <div class="eyebrow">Contemplatio · Stage 4 of 4</div>
+        <h2 class="section-heading">Rest in<br>God's Presence</h2>
+        <div class="divider"></div>
+        <p class="lead" style="margin:0 0 14px;">Simply be with Him.<br>No words needed.</p>
+        <div class="breath-ring">
+            <span class="breath-label">BREATHE</span>
+        </div>
+        <p style="font-family:'Cormorant Garamond',serif; font-style:italic; color:var(--text-muted); font-size:.92rem; text-align:center; margin-top:12px;">Inhale… and exhale…</p>
+        <button class="btn-primary" style="margin-top:40px;" onclick="goToClosing()">Amen</button>
+    </section>
+
+    <!-- ═══════════════════════════════════ CLOSING ════════ -->
+    <section class="screen" id="screen-closing">
+        <span class="cross-mark">✦</span>
+        <div class="eyebrow" id="closing-date"></div>
+        <h2 class="section-heading" style="font-size:clamp(1.2rem,2.5vw,1.7rem);">May this word stay with you</h2>
+        <div class="divider"></div>
+        <div class="summary-block">
+            <div class="summary-label">Today's Gospel</div>
+            <div class="summary-value" id="closing-ref"></div>
+
+            <div class="summary-label">Your Phrase</div>
+            <div class="chosen-word" id="closing-phrase" style="font-size:clamp(1rem,2.2vw,1.5rem); margin:10px 0 6px;"></div>
+
+            <div class="summary-label">Your Prayer</div>
+            <div class="summary-value" id="closing-prayer"></div>
+        </div>
+        <div style="margin-top:32px; display:flex; gap:12px; flex-wrap:wrap; justify-content:center;">
+            <button class="btn-ghost" onclick="saveExperience()">Copy to Journal</button>
+            <button class="btn-primary" onclick="beginAgain()">Return Home</button>
+        </div>
+    </section>
+
+    <!-- ═══════════════════════════════════ MANUAL ENTRY ═══ -->
+    <section class="screen" id="screen-manual">
+        <span class="cross-mark">✦</span>
+        <div class="eyebrow">Today's Gospel</div>
+        <h2 class="section-heading" style="font-size:clamp(1.1rem,2.5vw,1.7rem);">Gospel could not load</h2>
+        <div class="divider"></div>
+        <p class="lead">Visit <a class="manual-link" href="https://bible.usccb.org/daily-bible-reading" target="_blank" rel="noopener">bible.usccb.org</a> for today's gospel,<br>then paste it below to begin.</p>
+        <div style="width:100%; max-width:580px;">
+            <div class="input-hint">Gospel reference (e.g. Matthew 5:1-12)</div>
+            <input type="text" class="sacred-input" id="manual-ref" placeholder="Reference…" style="font-size:1rem; margin-bottom:16px;">
+            <textarea class="sacred-textarea" id="manual-text" placeholder="Paste the gospel text here…" style="min-height:180px;"></textarea>
+        </div>
+        <button class="btn-primary" style="margin-top:28px;" onclick="useManualEntry()">Begin Lectio Divina</button>
+    </section>
+
+</div><!-- #app -->
+
+<script>
+// ── State ─────────────────────────────────────────────────────────────
+const state = {
+    gospel: null,
+    phrase: '',
+    reflection: '',
+    prayerType: '',
+    current: 'intro'
+};
+
+// ── Stage routing ─────────────────────────────────────────────────────
+const STAGES = ['intro','loading','reading1','reading2','reading3','meditatio','reflection','oratio','contemplatio','closing'];
+const PROGRESS_MAP = { intro:0, loading:5, reading1:20, reading2:38, reading3:55, meditatio:65, reflection:75, oratio:85, contemplatio:95, closing:100 };
+const BC_MAP = { reading1:'lectio', reading2:'lectio', reading3:'lectio', meditatio:'meditatio', reflection:'meditatio', oratio:'oratio', contemplatio:'contemplatio', closing:'contemplatio' };
+
+// ── Canvas particle system ────────────────────────────────────────────
+const canvas = document.getElementById('canvas-bg');
+const ctx    = canvas.getContext('2d');
+
+function resizeCanvas() { canvas.width = window.innerWidth; canvas.height = window.innerHeight; }
+resizeCanvas();
+window.addEventListener('resize', resizeCanvas);
+
+const particles = Array.from({ length: 90 }, () => ({
+    x:       Math.random() * window.innerWidth,
+    y:       Math.random() * window.innerHeight,
+    r:       Math.random() * 1.4 + 0.15,
+    speed:   Math.random() * 0.28 + 0.06,
+    opacity: Math.random() * 0.35 + 0.04,
+    drift:   (Math.random() - 0.5) * 0.18,
+    twinkle: Math.random() * Math.PI * 2
+}));
+
+(function animateParticles() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    const t = performance.now() / 1000;
+    particles.forEach(p => {
+        p.y -= p.speed;
+        p.x += p.drift;
+        p.twinkle += 0.015;
+        if (p.y < -8)              { p.y = canvas.height + 8; p.x = Math.random() * canvas.width; }
+        if (p.x < -8)              p.x = canvas.width + 8;
+        if (p.x > canvas.width + 8) p.x = -8;
+        const alpha = p.opacity * (0.7 + 0.3 * Math.sin(p.twinkle));
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+        ctx.fillStyle = `rgba(200,162,80,${alpha})`;
+        ctx.fill();
+    });
+    requestAnimationFrame(animateParticles);
+})();
+
+// ── Screen transitions ────────────────────────────────────────────────
+function showScreen(name) {
+    const prev = document.querySelector('.screen.active');
+    const next = document.getElementById(`screen-${name}`);
+    if (!next || prev === next) return;
+
+    if (prev) {
+        prev.classList.add('exit');
+        setTimeout(() => prev.classList.remove('active', 'exit'), 950);
+    }
+
+    setTimeout(() => {
+        next.classList.add('active');
+        next.scrollTop = 0;
+        const scroll = next.querySelector('.scripture-scroll');
+        if (scroll) scroll.scrollTop = 0;
+    }, prev ? 180 : 0);
+
+    state.current = name;
+
+    // Progress bar
+    document.getElementById('progress-fill').style.width = (PROGRESS_MAP[name] ?? 0) + '%';
+
+    // Breadcrumb
+    const bc = document.getElementById('breadcrumb');
+    const bcKey = BC_MAP[name];
+    if (bcKey) {
+        bc.classList.add('visible');
+        ['lectio','meditatio','oratio','contemplatio'].forEach(k => {
+            document.getElementById(`bc-${k}`).classList.toggle('active', k === bcKey);
+        });
+    } else {
+        bc.classList.remove('visible');
+    }
+}
+
+// ── USCCB gospel fetch ────────────────────────────────────────────────
+async function fetchGospel() {
+    const USCCB = 'https://bible.usccb.org/daily-bible-reading';
+    const proxies = [
+        `https://api.allorigins.win/raw?url=${encodeURIComponent(USCCB)}`,
+        `https://corsproxy.io/?${encodeURIComponent(USCCB)}`,
+        `https://thingproxy.freeboard.io/fetch/${USCCB}`
+    ];
+
+    for (const url of proxies) {
+        try {
+            const res = await fetch(url, { signal: AbortSignal.timeout(12000) });
+            if (!res.ok) continue;
+            const html = await res.text();
+            const gospel = parseGospel(html);
+            if (gospel && gospel.text.length > 80) return gospel;
+        } catch (e) {
+            /* try next proxy */
+        }
+    }
+    return null;
+}
+
+function parseGospel(html) {
+    const doc = new DOMParser().parseFromString(html, 'text/html');
+
+    // Strategy 1: heading containing "Gospel" → walk to nearest parent with paragraphs
+    const headings = doc.querySelectorAll('h2,h3,h4,h5,h6,.field-label,.views-label,[class*="heading"]');
+    for (const h of headings) {
+        if (!/gospel/i.test(h.textContent)) continue;
+        const container = h.closest('[class*="reading"],[class*="content"],[class*="passage"],section,article')
+                       || h.parentElement?.parentElement
+                       || h.parentElement;
+        if (!container) continue;
+        const paras  = Array.from(container.querySelectorAll('p')).map(p => p.textContent.trim()).filter(t => t.length > 30);
+        if (paras.length < 1) continue;
+        const refRaw  = h.textContent.replace(/^gospel[:\s]*/i, '').trim();
+        return { reference: refRaw || "Today's Gospel", text: paras.join('\n\n') };
+    }
+
+    // Strategy 2: last group of consecutive paragraphs (gospel is the final reading)
+    const allP = Array.from(doc.querySelectorAll('main p, [role="main"] p, article p, .view-content p'))
+                      .filter(p => p.textContent.trim().length > 40);
+    if (allP.length > 3) {
+        const slice = allP.slice(-Math.min(20, allP.length));
+        const text  = slice.map(p => p.textContent.trim()).join('\n\n');
+        if (text.length > 80) return { reference: "Today's Gospel", text };
+    }
+
+    // Strategy 3: largest text block
+    let best = null, bestLen = 0;
+    doc.querySelectorAll('div,section,article').forEach(el => {
+        const len = el.textContent.trim().length;
+        if (len > bestLen && len < 15000 && el.querySelectorAll('p').length > 2) {
+            bestLen = len;
+            best = el;
+        }
+    });
+    if (best) {
+        const paras = Array.from(best.querySelectorAll('p')).map(p => p.textContent.trim()).filter(t => t.length > 30);
+        if (paras.length > 0) return { reference: "Today's Gospel", text: paras.join('\n\n') };
+    }
+
+    return null;
+}
+
+// ── Flow handlers ─────────────────────────────────────────────────────
+function beginJourney() {
+    showScreen('loading');
+    fetchGospel().then(gospel => {
+        if (gospel) {
+            state.gospel = gospel;
+            populateReadings();
+            setTimeout(() => showScreen('reading1'), 500);
+        } else {
+            setTimeout(() => showScreen('manual'), 500);
+        }
+    }).catch(() => setTimeout(() => showScreen('manual'), 500));
+}
+
+function populateReadings() {
+    const { reference, text } = state.gospel;
+    [1,2,3].forEach(n => {
+        document.getElementById(`ref${n}`).textContent = reference;
+        document.getElementById(`text${n}`).textContent = text;
+    });
+}
+
+function goToReading2() { showScreen('reading2'); }
+function goToReading3() { showScreen('reading3'); }
+
+function goToMeditatio() {
+    showScreen('meditatio');
+    setTimeout(() => document.getElementById('phrase-input')?.focus(), 1500);
+}
+
+function goToReflection() {
+    const input = document.getElementById('phrase-input');
+    const phrase = input.value.trim();
+    if (!phrase) {
+        input.classList.add('shake');
+        setTimeout(() => input.classList.remove('shake'), 500);
+        input.focus();
+        return;
+    }
+    state.phrase = phrase;
+    document.getElementById('display-phrase').textContent = phrase;
+    showScreen('reflection');
+    setTimeout(() => document.getElementById('reflection-input')?.focus(), 1500);
+}
+
+function goToOratio() {
+    state.reflection = document.getElementById('reflection-input').value.trim();
+    document.getElementById('oratio-phrase').textContent = state.phrase;
+    showScreen('oratio');
+}
+
+function selectPrayer(type, el) {
+    state.prayerType = type;
+    document.querySelectorAll('.prayer-card').forEach(c => c.classList.remove('selected'));
+    el.classList.add('selected');
+    const btn = document.getElementById('oratio-continue');
+    btn.disabled = false;
+}
+
+function goToContemplatio() {
+    if (!state.prayerType) return;
+    showScreen('contemplatio');
+}
+
+function goToClosing() {
+    const LABELS = {
+        gratitude:    'Gratitude 🙏',
+        petition:     'Petition 🤲',
+        praise:       'Praise ✨',
+        repentance:   'Repentance 💔',
+        surrender:    'Surrender 🕊️',
+        intercession: 'Intercession 💛'
+    };
+    const now = new Date();
+    document.getElementById('closing-date').textContent =
+        now.toLocaleDateString('en-US', { weekday:'long', year:'numeric', month:'long', day:'numeric' });
+    document.getElementById('closing-ref').textContent    = state.gospel?.reference || '';
+    document.getElementById('closing-phrase').textContent = state.phrase;
+    document.getElementById('closing-prayer').textContent = LABELS[state.prayerType] || state.prayerType;
+    showScreen('closing');
+    saveToStorage();
+}
+
+function saveToStorage() {
+    try {
+        const entry = {
+            date:       new Date().toISOString(),
+            reference:  state.gospel?.reference,
+            phrase:     state.phrase,
+            reflection: state.reflection,
+            prayer:     state.prayerType
+        };
+        const journal = JSON.parse(localStorage.getItem('lectio_journal') || '[]');
+        journal.unshift(entry);
+        if (journal.length > 60) journal.length = 60;
+        localStorage.setItem('lectio_journal', JSON.stringify(journal));
+    } catch (_) {}
+}
+
+function saveExperience() {
+    const text = [
+        `Lectio Divina — ${new Date().toLocaleDateString('en-US', { weekday:'long', year:'numeric', month:'long', day:'numeric' })}`,
+        `Gospel: ${state.gospel?.reference || ''}`,
+        '',
+        `My word / phrase: "${state.phrase}"`,
+        '',
+        `Where God is calling me: ${state.reflection || '(not recorded)'}`,
+        '',
+        `Prayer: ${state.prayerType}`
+    ].join('\n');
+
+    navigator.clipboard?.writeText(text)
+        .then(() => alert('Copied to clipboard — paste into your journal.'))
+        .catch(() => alert(text));
+}
+
+function beginAgain() {
+    // reset state
+    state.phrase = state.reflection = state.prayerType = '';
+    document.getElementById('phrase-input').value    = '';
+    document.getElementById('reflection-input').value = '';
+    document.querySelectorAll('.prayer-card').forEach(c => c.classList.remove('selected'));
+    document.getElementById('oratio-continue').disabled = true;
+    showScreen('intro');
+}
+
+function useManualEntry() {
+    const ref  = document.getElementById('manual-ref').value.trim() || "Today's Gospel";
+    const text = document.getElementById('manual-text').value.trim();
+    if (!text) {
+        const ta = document.getElementById('manual-text');
+        ta.style.borderColor = 'rgba(200,80,80,.5)';
+        setTimeout(() => ta.style.borderColor = '', 700);
+        ta.focus();
+        return;
+    }
+    state.gospel = { reference: ref, text };
+    populateReadings();
+    showScreen('reading1');
+}
+
+// ── Init date ─────────────────────────────────────────────────────────
+document.getElementById('intro-date').textContent =
+    new Date().toLocaleDateString('en-US', { weekday:'long', year:'numeric', month:'long', day:'numeric' });
+
+// ── Keyboard support ──────────────────────────────────────────────────
+document.addEventListener('keydown', e => {
+    if (e.key === 'Enter' && state.current === 'intro') beginJourney();
+});
+</script>
+</body>
+</html>
