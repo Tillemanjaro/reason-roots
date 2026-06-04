@@ -121,11 +121,13 @@
             opacity: 1;
             pointer-events: all;
             transform: translateY(0);
+            z-index: 2;
         }
         .screen.exit {
             opacity: 0;
             transform: translateY(-18px);
             transition: opacity .9s ease, transform .9s ease;
+            z-index: 1;
         }
 
         /* ── Typography ────────────────────────────────────────── */
