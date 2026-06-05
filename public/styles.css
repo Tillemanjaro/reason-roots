@@ -1243,6 +1243,58 @@ body.chapter-page .chapter-shell {
   padding: 0.85rem 1rem;
 }
 
+.evidence-grid {
+  display: grid;
+  gap: 1px;
+  margin-top: 1.5rem;
+  background: var(--line);
+}
+
+.evidence-item {
+  background: rgba(245, 241, 232, 0.035);
+  border: 0;
+  padding: 0;
+}
+
+.evidence-item summary {
+  list-style: none;
+  cursor: pointer;
+  padding: 1rem;
+  font-weight: 800;
+  color: var(--ivory);
+}
+
+.evidence-item summary::-webkit-details-marker {
+  display: none;
+}
+
+.evidence-item summary::after {
+  content: "+";
+  float: right;
+  color: var(--gold);
+}
+
+.evidence-item[open] summary::after {
+  content: "-";
+}
+
+.evidence-item p,
+.evidence-item ul {
+  margin: 0;
+  padding: 0 1rem 1rem;
+}
+
+.evidence-item ul {
+  padding-left: 2rem;
+  color: rgba(245, 241, 232, 0.76);
+  display: grid;
+  gap: 0.45rem;
+}
+
+.evidence-item a {
+  color: var(--gold);
+}
+
 .quiz {
   display: grid;
   gap: 0.65rem;
