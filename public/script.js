@@ -13,7 +13,10 @@ if (questions.length) {
   setInterval(rotateQuestion, 2400);
 }
 
-const episodeCards = document.querySelectorAll(".episode-card");
+const episodeCards = Array.from(document.querySelectorAll(".episode-card")).filter((card) => {
+  const href = card.getAttribute("href") || "";
+  return href.startsWith("#");
+});
 const episodes = document.querySelectorAll(".chapter-panel");
 const journeyStage = document.querySelector("#journey-stage");
 const journeyPhase = document.querySelector("#journey-phase");
