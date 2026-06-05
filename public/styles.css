@@ -256,6 +256,7 @@ h3 {
 }
 
 .intro-band,
+.seeker-paths,
 .chapter-shell,
 .exhibit,
 .resources,
@@ -275,6 +276,82 @@ h3 {
 
 .intro-band {
   background: var(--ink);
+}
+
+.seeker-paths {
+  background:
+    radial-gradient(circle at 18% 18%, rgba(200, 169, 107, 0.12), transparent 24%),
+    linear-gradient(180deg, rgba(17, 24, 39, 0.96), rgba(11, 11, 13, 1));
+}
+
+.seeker-paths .section-heading p:last-child {
+  max-width: 48rem;
+  color: rgba(245, 241, 232, 0.78);
+}
+
+.seeker-grid {
+  width: min(1180px, 100%);
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem;
+}
+
+.seeker-card {
+  display: grid;
+  gap: 0.85rem;
+  min-height: 16rem;
+  border: 1px solid rgba(245, 241, 232, 0.14);
+  background:
+    linear-gradient(150deg, rgba(200, 169, 107, 0.08), rgba(74, 139, 137, 0.06)),
+    rgba(245, 241, 232, 0.035);
+  padding: 1.25rem;
+  text-decoration: none;
+  transition: transform 0.2s ease, border-color 0.2s ease, background 0.2s ease;
+}
+
+.seeker-card:hover {
+  transform: translateY(-2px);
+  border-color: rgba(200, 169, 107, 0.72);
+  background: rgba(200, 169, 107, 0.11);
+}
+
+.seeker-card-tag {
+  display: inline-flex;
+  align-items: center;
+  width: fit-content;
+  border: 1px solid rgba(200, 169, 107, 0.36);
+  color: var(--gold);
+  padding: 0.3rem 0.55rem;
+  font-size: 0.7rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.seeker-card h3 {
+  font-size: clamp(2rem, 3.3vw, 3rem);
+}
+
+.seeker-card p {
+  margin: 0;
+  color: rgba(245, 241, 232, 0.78);
+}
+
+.seeker-card strong {
+  margin-top: auto;
+  color: var(--gold);
+  font-size: 0.84rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.seeker-card-prayer {
+  grid-column: 1 / -1;
+  background:
+    linear-gradient(115deg, rgba(74, 30, 36, 0.34), rgba(74, 139, 137, 0.14)),
+    rgba(245, 241, 232, 0.035);
 }
 
 .section-inner {
@@ -1930,6 +2007,16 @@ figcaption {
 
   .chapter-grid {
     grid-template-columns: 1fr;
+  }
+
+  .seeker-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .seeker-card,
+  .seeker-card-prayer {
+    min-height: auto;
+    grid-column: auto;
   }
 
   .chapter-card {
