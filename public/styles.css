@@ -256,7 +256,7 @@ h3 {
 }
 
 .intro-band,
-.seeker-paths,
+.proof-band,
 .chapter-shell,
 .exhibit,
 .resources,
@@ -278,18 +278,18 @@ h3 {
   background: var(--ink);
 }
 
-.seeker-paths {
+.proof-band {
   background:
     radial-gradient(circle at 18% 18%, rgba(200, 169, 107, 0.12), transparent 24%),
     linear-gradient(180deg, rgba(17, 24, 39, 0.96), rgba(11, 11, 13, 1));
 }
 
-.seeker-paths .section-heading p:last-child {
+.proof-band .section-heading p:last-child {
   max-width: 48rem;
   color: rgba(245, 241, 232, 0.78);
 }
 
-.seeker-grid {
+.proof-grid {
   width: min(1180px, 100%);
   margin: 0 auto;
   display: grid;
@@ -297,7 +297,7 @@ h3 {
   gap: 1rem;
 }
 
-.seeker-card {
+.proof-card {
   display: grid;
   gap: 0.85rem;
   min-height: 16rem;
@@ -310,13 +310,13 @@ h3 {
   transition: transform 0.2s ease, border-color 0.2s ease, background 0.2s ease;
 }
 
-.seeker-card:hover {
+.proof-card:hover {
   transform: translateY(-2px);
   border-color: rgba(200, 169, 107, 0.72);
   background: rgba(200, 169, 107, 0.11);
 }
 
-.seeker-card-tag {
+.proof-card-tag {
   display: inline-flex;
   align-items: center;
   width: fit-content;
@@ -329,16 +329,16 @@ h3 {
   text-transform: uppercase;
 }
 
-.seeker-card h3 {
+.proof-card h3 {
   font-size: clamp(2rem, 3.3vw, 3rem);
 }
 
-.seeker-card p {
+.proof-card p {
   margin: 0;
   color: rgba(245, 241, 232, 0.78);
 }
 
-.seeker-card strong {
+.proof-card strong {
   margin-top: auto;
   color: var(--gold);
   font-size: 0.84rem;
@@ -347,7 +347,7 @@ h3 {
   text-transform: uppercase;
 }
 
-.seeker-card-prayer {
+.proof-card-summary {
   grid-column: 1 / -1;
   background:
     linear-gradient(115deg, rgba(74, 30, 36, 0.34), rgba(74, 139, 137, 0.14)),
@@ -2009,12 +2009,12 @@ figcaption {
     grid-template-columns: 1fr;
   }
 
-  .seeker-grid {
+  .proof-grid {
     grid-template-columns: 1fr;
   }
 
-  .seeker-card,
-  .seeker-card-prayer {
+  .proof-card,
+  .proof-card-summary {
     min-height: auto;
     grid-column: auto;
   }
